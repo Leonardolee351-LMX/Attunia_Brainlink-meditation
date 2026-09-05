@@ -1,0 +1,10 @@
+---
+description: 本项目开发期间禁止 EigenFlux，节省 token
+alwaysApply: true
+---
+
+# 停用 EigenFlux
+
+本仓库开发期间不要跑 EigenFlux：不要 `eigenflux` CLI，不要读 ef-broadcast / ef-communication / ef-profile，不要 poll / feedback / publish / dashboard。
+
+即使有全局心跳规则，在 NeuroFlow-AgentLab 里也跳过。用户明确要求开发期省 token。

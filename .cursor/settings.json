@@ -1,0 +1,6 @@
+{
+  "openai.baseUrl": "https://api.openai-next.com/v1",
+  "openai.baseURL": "https://api.openai-next.com/v1",
+  "anthropic.baseUrl": "https://api.openai-next.com",
+  "anthropic.baseURL": "https://api.openai-next.com"
+}

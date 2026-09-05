@@ -1,0 +1,13 @@
+---
+description: 任务板以 board.json 为唯一事实来源，工人改状态必须写回
+alwaysApply: true
+---
+
+# 任务板
+
+- 唯一事实来源：`docs/agent-lab/board.json`。口头进度不算完成。
+- 开工 / 改状态 / 阻塞 / 收工时，立刻改自己那条 `agents[]` 的 `status`、`now`、`currentTicket`、`updatedAt`，并改对应 `tickets[]`。
+- 然后运行：`node scripts/sync-agent-board.mjs`（会重写 `AGENT_BOARD.md`）。
+- 不要手改 `AGENT_BOARD.md`。不要改别人的 `agents[]` 条目。
+- `status` 只允许：`idle` `todo` `doing` `blocked` `review` `done`。
+- 总控负责把 `board.json` 同步到旁边的可视化画板。工人不改 `.canvas.tsx`。

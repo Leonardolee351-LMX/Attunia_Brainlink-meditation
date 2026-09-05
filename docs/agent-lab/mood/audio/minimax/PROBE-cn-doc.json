@@ -1,0 +1,110 @@
+[
+  {
+    "host": "https://api.minimax.cn",
+    "model": "music-3.0",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.3
+  },
+  {
+    "host": "https://api.minimax.cn",
+    "model": "music-2.6",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.7
+  },
+  {
+    "host": "https://api.minimax.cn",
+    "model": "music-3.0-free",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.5
+  },
+  {
+    "host": "https://api.minimax.cn",
+    "model": "music-2.6-free",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 2.1
+  },
+  {
+    "host": "https://api.minimaxi.com",
+    "model": "music-3.0",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.4
+  },
+  {
+    "host": "https://api.minimaxi.com",
+    "model": "music-2.6",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.4
+  },
+  {
+    "host": "https://api.minimaxi.com",
+    "model": "music-3.0-free",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.4
+  },
+  {
+    "host": "https://api.minimaxi.com",
+    "model": "music-2.6-free",
+    "http": 410,
+    "status_code": 2153,
+    "status_msg": "This Music API is no longer available to new users. Existing paying customers can continue to use the service. For new access, please try MiniMax Audio (https://www.minimax.io/audio) or the open-source model at https://huggingface.co/MiniMa",
+    "has_audio": false,
+    "elapsed_s": 0.4
+  },
+  {
+    "host": "https://api.minimax.io",
+    "model": "music-3.0",
+    "http": 200,
+    "status_code": 2049,
+    "status_msg": "invalid api key",
+    "has_audio": false,
+    "elapsed_s": 1.0
+  },
+  {
+    "host": "https://api.minimax.io",
+    "model": "music-2.6",
+    "http": 200,
+    "status_code": 2049,
+    "status_msg": "invalid api key",
+    "has_audio": false,
+    "elapsed_s": 0.6
+  },
+  {
+    "host": "https://api.minimax.io",
+    "model": "music-3.0-free",
+    "http": 200,
+    "status_code": 2049,
+    "status_msg": "invalid api key",
+    "has_audio": false,
+    "elapsed_s": 0.6
+  },
+  {
+    "host": "https://api.minimax.io",
+    "model": "music-2.6-free",
+    "http": 200,
+    "status_code": 2049,
+    "status_msg": "invalid api key",
+    "has_audio": false,
+    "elapsed_s": 0.6
+  }
+]

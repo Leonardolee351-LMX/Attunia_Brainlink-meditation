@@ -1,0 +1,12 @@
+---
+description: 仅总控使用本仓库的产品经理 skills；工人不要拿来写代码
+alwaysApply: true
+---
+
+# 总控 PM skills
+
+`.agents/skills/` 里的 PM 技能只给总控用：写问题、JTBD、人设、方案简报、PRD、用户故事、验收标准、边界情况、优先级、旅程图、假设、上线清单。
+
+- 拆票、定范围、写完成定义之前：先读对应 skill 的 `SKILL.md`。
+- 前端 / 后端 / 合规：不要运行这些 skill 去改 `src/` 或 `api/`。
+- 产物落到 `docs/agent-lab/`（例如 PRD），再拆成 F/B/C 票写入 `board.json`。

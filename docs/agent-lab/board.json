@@ -1,0 +1,428 @@
+{
+  "updatedAt": "2026-09-05T15:22:00+08:00",
+  "version": 0,
+  "nextBackupAt": 3,
+  "agents": [
+    {
+      "id": "lead",
+      "name": "总控",
+      "status": "idle",
+      "currentTicket": "L-2",
+      "allowed": ["docs/agent-lab/", ".cursor/rules/", "contracts/", "AGENTS.md", ".agents/skills/"],
+      "forbidden": ["src/pages", "api/routers（除非明确接管）"],
+      "now": "产品 Attunia；编排 Agent 已改名为 Tuno。F-17 开启页待验收。",
+      "updatedAt": "2026-09-05T13:50:00+08:00"
+    },
+    {
+      "id": "frontend",
+      "name": "前端",
+      "status": "review",
+      "currentTicket": "F-8",
+      "allowed": ["src/", "index.html"],
+      "forbidden": ["api/", "db/", "contracts/（未经总控批准）"],
+      "now": "F-8：Friends 分色头像+输入置顶。待验收。",
+      "updatedAt": "2026-09-05T15:22:00+08:00"
+    },
+    {
+      "id": "backend",
+      "name": "后端",
+      "status": "review",
+      "currentTicket": "B-5",
+      "allowed": ["api/", "db/", "drizzle.config.ts", "eval/", "config/"],
+      "forbidden": ["src/pages", "src/components", "contracts/（未经总控批准）"],
+      "now": "B-4/B-6：TTS 空 GroupId 不再整条降级；会诊 speaker→不同 MiniMax 音色。待听验收。",
+      "updatedAt": "2026-09-05T10:45:00+08:00"
+    },
+    {
+      "id": "compliance",
+      "name": "合规",
+      "status": "idle",
+      "currentTicket": "C-2",
+      "allowed": ["只读审查；发现问题写票"],
+      "forbidden": ["src/", "api/", "db/（除非任务板写明豁免）"],
+      "now": "奇绩 Key 已写入本机 gitignore 文件，范围仅本仓与隔壁 Brainlink；未进全局 Cursor 设置。下一张是 C-2 免责/危机体验。",
+      "updatedAt": "2026-09-05T10:40:00+08:00"
+    },
+    {
+      "id": "consultant",
+      "name": "训练咨询",
+      "status": "review",
+      "currentTicket": "T-5",
+      "allowed": ["docs/agent-lab/training/", "docs/agent-lab/briefs/CONSULTANT.md"],
+      "forbidden": ["src/", "api/", "db/", "contracts/（提案可写进 training 文档）"],
+      "now": "T-5：超载四模块交互动效意义匹配 + HTML 演示已交；待总控/前端验收后开 F 票进 src。",
+      "updatedAt": "2026-09-05T15:15:00+08:00"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "L-0",
+      "agent": "lead",
+      "status": "done",
+      "title": "落地总控编制",
+      "doneWhen": "边界、分工、任务板、Version 备份协议写入仓库",
+      "note": "已完成。可视化任务板与 board.json 为后续监视面。"
+    },
+    {
+      "id": "L-1",
+      "agent": "lead",
+      "status": "done",
+      "title": "为总控安装产品经理技能包",
+      "doneWhen": "本仓库装上 PRD / 用户故事 / 验收 / JTBD 等核心 PM skills，并写明仅总控使用",
+      "note": "product-on-purpose/pm-skills 共 12 个，装在 .agents/skills/。前端/后端/合规不要拿来写代码。"
+    },
+    {
+      "id": "F-0",
+      "agent": "frontend",
+      "status": "done",
+      "title": "等待第一张前端票",
+      "doneWhen": "总控派发 F-1 后此票关闭",
+      "note": "用户当面派发 F-1，本票关闭。"
+    },
+    {
+      "id": "F-1",
+      "agent": "frontend",
+      "status": "done",
+      "title": "训练页三通道实时真机可视化",
+      "doneWhen": "全部 /session 训练都能显示唤醒/专注/平静；已接头环时读 live-device 真机数据，未接时回落模拟",
+      "note": "SessionPage 订阅 live-device。已在 breath-478 / breath-box / drift-stars 走通。不改匹配引擎与 debrief 接口。"
+    },
+    {
+      "id": "F-2",
+      "agent": "frontend",
+      "status": "done",
+      "title": "全页排版对齐 + 场景图像素材",
+      "doneWhen": "Home/对话/会诊/画像/场景/开屏间距与字号对齐；三场景有可用图像素材",
+      "note": "素材在 public/scenes/。Home/对话/会诊/画像已用统一 PageHeader 与 24px 圆角。"
+    },
+    {
+      "id": "F-3",
+      "agent": "frontend",
+      "status": "done",
+      "title": "Work-life 六场景（按状态推荐）",
+      "doneWhen": "首页 2×3 六个上班族场景；按时间与三通道状态推荐此刻；不含睡前/起床；点进场景页能进对应训练",
+      "note": "六景：开工前奏 / 会后留白 / 午憩航道 / 超载减负 / 摸鱼回笼 / 下工仪式。只改前端目录，映射已有 planId。"
+    },
+    {
+      "id": "F-4",
+      "agent": "frontend",
+      "status": "done",
+      "title": "抽象光效封面 + 校准盯球去标注",
+      "doneWhen": "首页场景图为几何渐变光效而非实景；校准 Focus/Meditation 有动效画面且盯球时无进度条标注",
+      "note": "不改匹配引擎与 contracts。"
+    },
+    {
+      "id": "F-5",
+      "agent": "frontend",
+      "status": "done",
+      "title": "六景声景 BGM + 播放器训练页 + 温婉女声",
+      "doneWhen": "六个预设场景能播对应声景；训练正式页为深色播放器动效并随脑电变化；引导语为柔和女声",
+      "note": "声景来自 docs/agent-lab/mood。speakGuidance 已 MiniMax 优先（POST /api/trpc/agent.tts）；本机 GroupId 空，训练页实测仍是浏览器 SpeechSynthesis。"
+    },
+    {
+      "id": "F-6",
+      "agent": "frontend",
+      "status": "done",
+      "title": "会诊领域图标 + 危机词表对齐后端",
+      "doneWhen": "Mira 显示心理咨询图标；页面不再把创作当专家领域；对话危机拦截覆盖后端词表与死了.{0,6}更好",
+      "note": "DOMAIN_ICON 删创作、加心理咨询。ComplianceNote 与 api/agents/crisis.ts 子串及宽松匹配对齐。未改 api/。"
+    },
+    {
+      "id": "B-0",
+      "agent": "backend",
+      "status": "done",
+      "title": "等待第一张后端票",
+      "doneWhen": "总控派发 B-1 后此票关闭",
+      "note": "用户当面派发 B-1，本票关闭。"
+    },
+    {
+      "id": "B-1",
+      "agent": "backend",
+      "status": "done",
+      "title": "专家名册重组 + 全体专家接入疗法目录",
+      "doneWhen": "Sona 合并创作与艺术并可即兴；Mira 改为心理咨询；五位专家提案时都能看到完整现有疗法并基于目录延展",
+      "note": "冒烟 4/4。Sona domain=艺术与创作且 supportsInvention。presets.experts 给前端。会诊页按 expertId 配图标，创作/艺术别名到同一符号。用户授权同步改了 src/pages。"
+    },
+    {
+      "id": "B-2",
+      "agent": "backend",
+      "status": "review",
+      "title": "接入初版评测集 + 本地 LLM API 文档",
+      "doneWhen": "CURRENT 指向 eval_No.1；生产代码可跑该集；Kimi/MiniMax 密钥不在源码里，改由 gitignore 的 local md 提供；仓库里有可提交的调用格式模板",
+      "note": "npm run eval 13/13 通过。密钥在 config/llm-apis.local.md（gitignore）。格式模板 config/llm-apis.md。非语言 API 见 config/media-apis.md。前端危机词表仍短于后端。"
+    },
+    {
+      "id": "B-4",
+      "agent": "backend",
+      "status": "review",
+      "title": "MiniMax TTS 换成温婉慢速女声",
+      "doneWhen": "agent.tts 不再用 female-chengshu；voice_id 为有声书/温婉女声；语速明显慢于 1.0；配置从 llm-apis 读取",
+      "note": "空 GroupId 不再返回 unconfigured。有 apiKey 即打 t2a_v2。训练引导仍是 audiobook_female_1 @ 0.75。"
+    },
+    {
+      "id": "B-5",
+      "agent": "backend",
+      "status": "review",
+      "title": "Multi-Agent 按环节拼接目录（不做即兴/生图/作曲）",
+      "doneWhen": "会诊按顺序分环节派工并拼接已有疗法；即兴/生图/作曲关闭；边界文档可供 todolist 调用",
+      "note": "条文 docs/agent-lab/multi-agent-boundary.md；skill .cursor/skills/multi-agent-boundary。旧 A2A 五选一已改为按步拼接。契约形状未改，两步写进 customized.phases。"
+    },
+    {
+      "id": "C-0",
+      "agent": "compliance",
+      "status": "done",
+      "title": "等待下一张合规审查票",
+      "doneWhen": "总控派发新的 C- 票后此票关闭",
+      "note": "C-2 已开，本票关闭。"
+    },
+    {
+      "id": "C-1",
+      "agent": "compliance",
+      "status": "done",
+      "title": "为本仓库配置奇绩 Cursor Base URL（不含密钥）",
+      "doneWhen": "工作区写出 openai-next Base URL；密钥不进仓库；确认不外传原始脑电",
+      "note": "Base URL 写入工作区设置。API Key 需选手自建。原始脑电不得外传。"
+    },
+    {
+      "id": "L-2",
+      "agent": "lead",
+      "status": "done",
+      "title": "剩余五条 backlog 拆票与排序",
+      "doneWhen": "5 条写入 tickets；有 MoSCoW/ICE 文档；工人未开工前不改 src/api",
+      "note": "文档 docs/agent-lab/remaining-backlog.md。监视面 remaining-backlog.canvas.tsx。"
+    },
+    {
+      "id": "C-2",
+      "agent": "compliance",
+      "status": "todo",
+      "title": "免责声明与危机识别体验（不可与 UX 对冲掉）",
+      "doneWhen": "关键路径有免责披露；危机识别前后端词表对齐；拦截/转介体验可走通且不打断主 UserFlow 的可读性",
+      "note": "Must。B-2 已记前端危机词表短于后端。合规默认可只评；本票若要改页面需总控写豁免后再派前端。"
+    },
+    {
+      "id": "C-3",
+      "agent": "compliance",
+      "status": "done",
+      "title": "本机写入奇绩 API Key（仅两仓，不进 git）",
+      "doneWhen": "Key 只在 NeuroFlow-AgentLab 与隔壁 Brainlink 的 gitignore 本机文件；未写入全局 Cursor 设置",
+      "note": "密钥不进仓库、不进任务板正文。Cursor Models Override 仍是应用级，禁止把该 Key 填进全局设置。"
+    },
+    {
+      "id": "B-3",
+      "agent": "backend",
+      "status": "todo",
+      "title": "盘点并接入比赛提供的 API",
+      "doneWhen": "组委会/赛题 API 清单写入 config；生产路径至少用上题目要求的能力；密钥不进 git；原始脑电不外传",
+      "note": "Must。与 F-5 MiniMax TTS 可能重叠。文档未齐则标 Blocked。开工须等 B-2 验收。"
+    },
+    {
+      "id": "F-7",
+      "agent": "frontend",
+      "status": "todo",
+      "title": "全页 UX-Workflow 走查与优化",
+      "doneWhen": "开屏到训练结束的全部页面画出 flow；标出断点与重塑；总控点头后按走查改关键路径，而不是只交审计文档",
+      "note": "2026-09-05 用户升级：从「只审计」改为走查+优化。先走查再改；不改 api/contracts。"
+    },
+    {
+      "id": "L-3",
+      "agent": "lead",
+      "status": "todo",
+      "title": "A/B 三臂实验契约（记忆 / 脑电 / LLM）",
+      "doneWhen": "三组对照的分流、开关、日志字段写入 contracts 提案并经总控批准；再派 B-5/F-6",
+      "note": "Should。可缩成设置页三开关 + 会话日志。未批准前工人不改 contracts。"
+    },
+    {
+      "id": "F-8",
+      "agent": "frontend",
+      "status": "review",
+      "title": "UI 动效加分（持续）",
+      "doneWhen": "无完工线；每轮验收时训练/场景/转场至少多一处可感知动效且不挡 Must",
+      "note": "本轮：Conversation 出血+设置返回；Tuno & Friends 文案合并+Friends 阵容+跳转。持续票。"
+    },
+    {
+      "id": "F-9",
+      "agent": "frontend",
+      "status": "done",
+      "title": "首页意图输入 + 场景浓缩 + 校正迁 Profile",
+      "doneWhen": "首页黄油条改为状态输入，默认进 Conversation；新疗法/新鲜感/高度定制进 Nova 并自动会诊；去掉对话式推荐与多专家会诊两卡；场景改为 icon 浓缩；训练改为探索区；重新校正只在 Profile",
+      "note": "已在真机画幅走通：普通状态自动进 /chat；「新的疗法/高度定制」自动进 /consult 并发起会诊。校正只在 Profile。"
+    },
+    {
+      "id": "F-10",
+      "agent": "frontend",
+      "status": "done",
+      "title": "Conversation 建议结果去嵌套便当盒",
+      "doneWhen": "对话页不再套大白盒；组合方案改为时间线而不是盒中盒；单目标推荐改为条目而非海报卡嵌套",
+      "note": "已走通：组合方案为编号时间线 + 全宽主按钮；思考过程默认收起。不改 api/contracts。"
+    },
+    {
+      "id": "F-11",
+      "agent": "frontend",
+      "status": "done",
+      "title": "Profile 训练记忆 + 一周回顾（去便当盒）",
+      "doneWhen": "Profile 列出本机训练/会诊记忆；近 7 天回顾能按真实记录汇总；无大白盒，功能用横线隔开",
+      "note": "已用本机 nf2-memory 走通：一周次数/分钟/最常练/7 日点；记忆列表可点回训练。不改 contracts。"
+    },
+    {
+      "id": "B-6",
+      "agent": "backend",
+      "status": "review",
+      "title": "Multi-Agent TTS 按专家切换音色",
+      "doneWhen": "会诊/多专家发言可听出不同 voice_id；未配置时明确降级，而不是全员同一声或全员本机默认音",
+      "note": "speaker→voice_id 在 api/agents/tts.ts。会诊默认静音，点气泡才播。训练/单 Agent 才是主听感。"
+    },
+    {
+      "id": "F-12",
+      "agent": "frontend",
+      "status": "todo",
+      "title": "三项关键训练：脑电 × 呼吸 × 画面互动",
+      "doneWhen": "开工 breath-box、会后 breath-478、下工 ritual-offwork 三套训练过程中，画面与呼吸节律随三通道变化，而不是只播引导+静态光场",
+      "note": "用户指定最关键三项。可改选，但必须是能演示的闭环。不改匹配公式。"
+    },
+    {
+      "id": "F-13",
+      "agent": "frontend",
+      "status": "todo",
+      "title": "UI 美术整体质感",
+      "doneWhen": "首页/对话/会诊/训练/画像在同一套材质与间距里；不再像多轮补丁拼贴。动效仍归 F-8，本票管色、字、面、封面",
+      "note": "Could 相对三项训练；演示前至少收一层。不改 api。"
+    },
+    {
+      "id": "F-14",
+      "agent": "frontend",
+      "status": "todo",
+      "title": "训练与六景音乐重做",
+      "doneWhen": "六景 BGM 与三项关键训练的声景重做且能循环；与画面/呼吸不抢；无 MiniMax 作曲（B-5 边界）",
+      "note": "咨询师已重写 music-prompts.json v3 + generate_scene_audio.py，并已生成 public/audio/scenes/*.wav。前端 F-14 验收听感与循环；不调 MiniMax 作曲。"
+    },
+    {
+      "id": "F-15",
+      "agent": "frontend",
+      "status": "done",
+      "title": "训练播放器：场景模块上一/下一 + 多段进度",
+      "doneWhen": "场景 relatedPlanIds 在训练页顶部显示多段进度条；Play 两侧为上一/下一模块而非 ±15s；切换保留 sceneId 并重置会话",
+      "note": "用户当面派发。例：超载减负四组。不改 api/contracts。"
+    },
+    {
+      "id": "F-16",
+      "agent": "frontend",
+      "status": "done",
+      "title": "超载减负：着陆路径场景页 + 训练染色",
+      "doneWhen": "场景页按咨询师四步路径（先落地/松身体/慢心跳/换通道）展示何时用；主 CTA 进感官着陆；训练页标题/副标显示路径角色；无便当网格；不改 api/contracts",
+      "note": "全幅头图用路径训练封面匹配；左下标题+右下进入训练；元信息在头图与路径之间。"
+    },
+    {
+      "id": "F-17",
+      "agent": "frontend",
+      "status": "done",
+      "title": "Attunia 开启页 + 深色大脑几何封面",
+      "doneWhen": "每次打开 / 先见 Attunia 产品开启页，再进读懂你的大脑→设备→校准→home；封面为深色大脑/灵智平面构成；定位为冥想疗法与大脑调律",
+      "note": "品牌 Attunia；Splash/Cover/合规/首页 fallback；素材 public/brand/cover-brain-*.png 与 attunia-splash/cover。"
+    },
+    {
+      "id": "F-18",
+      "agent": "frontend",
+      "status": "done",
+      "title": "设备连接页唯美柔和重做",
+      "doneWhen": "戴上头环读状态页视觉柔和唯美，与 Attunia 开屏调性一致；连接逻辑不变",
+      "note": "DevicePage + public/brand/attunia-device-soft.png；次要连接收进「其他连接方式」。"
+    },
+    {
+      "id": "F-19",
+      "agent": "frontend",
+      "status": "done",
+      "title": "Conversation 空态与规整对话 UI",
+      "doneWhen": "首句前暗色问候空态；回复后规整呈现；加载完成滚动到最新回复顶部而非贴底；LLM/NeuroBand 渐进披露；空输入语音 icon、有字发送 icon",
+      "note": "后改为白底编码智能体背景 ChatAgentBackdrop。"
+    },
+    {
+      "id": "F-20",
+      "agent": "frontend",
+      "status": "done",
+      "title": "会诊页：主输入置顶 + LLM/记忆/模拟折叠",
+      "doneWhen": "说说此刻的你置顶为主任务；LLM、记忆、模拟状态默认折叠渐进披露；去掉左右分栏抢注意力",
+      "note": "ConsultPage 单栏；自动吸附上下文改称记忆。"
+    },
+    {
+      "id": "F-21",
+      "agent": "frontend",
+      "status": "done",
+      "title": "训练单元一屏 + 免责 icon 渐进披露",
+      "doneWhen": "模块翻开页无需滚动即可见进入训练；单元页与正式训练页用ⓘ折叠免责，不再每次勾选才能开始",
+      "note": "PlanFlipLayer 压缩布局；ComplianceDisclosure；SessionPage 去掉 PreSessionNotice 门禁。"
+    },
+    {
+      "id": "F-22",
+      "agent": "frontend",
+      "status": "review",
+      "title": "训练页字幕与脑电读数可开关",
+      "doneWhen": "所有 /session 训练页可独立开关字幕与实时脑电（唤醒/专注/平静）呈现；偏好本地记忆",
+      "note": "顶栏 字/脑/声；读数 HUD；采集后台仍继续，只控界面呈现。"
+    },
+    {
+      "id": "L-4",
+      "agent": "lead",
+      "status": "todo",
+      "title": "LLM 会话逻辑与犯错边界（设计）",
+      "doneWhen": "写出对话该做什么/不该做什么、降级规则、幻觉与目录外疗法的校正；再派 B-7",
+      "note": "用户 2026-09-05。与 B-5 不即兴/不生图/不作曲对齐。未批准前工人不改 contracts。"
+    },
+    {
+      "id": "B-7",
+      "agent": "backend",
+      "status": "todo",
+      "title": "LLM 会话逻辑与犯错边界（实现）",
+      "doneWhen": "chat/consult 遵守 L-4：目录外拒绝、危机拦截、无 key 降级规则；评测能抓住常见胡说",
+      "note": "等 L-4。不改前端页面。"
+    },
+    {
+      "id": "T-0",
+      "agent": "consultant",
+      "status": "done",
+      "title": "落地训练咨询编制",
+      "doneWhen": "角色 brief、允许/禁止路径、与会诊不即兴边界写入仓库",
+      "note": "brief 在 docs/agent-lab/briefs/CONSULTANT.md。目录说明在 docs/agent-lab/training/README.md。"
+    },
+    {
+      "id": "T-1",
+      "agent": "consultant",
+      "status": "done",
+      "title": "9月6日前三景详情：开工 / 会后 / 下工",
+      "doneWhen": "breath-box、breath-478、ritual-offwork 各有可落地的画面母题、三通道映射、协议钟、分秒引导词；不新增 planId",
+      "note": "已交后用户改关键三景。会后不再当关键演示景；breath-478 收进超载子模块。后继见 T-2。"
+    },
+    {
+      "id": "T-2",
+      "agent": "consultant",
+      "status": "review",
+      "title": "关键三景 + 全部子模块：开工 / 超载 / 下工",
+      "doneWhen": "clock-in、overload、clock-out 的主模块与 relatedPlanIds 全部有画面母题、三通道映射、协议钟、分秒引导词；不新增 planId",
+      "note": "docs/agent-lab/training/three-key-scenes.md 与 .json。请总控把 F-12 主演示改为 breath-box / grounding-54321 / ritual-offwork。引导文案细化见 T-3。"
+    },
+    {
+      "id": "T-3",
+      "agent": "consultant",
+      "status": "review",
+      "title": "大脑超载四模块：完整冥想引导文案",
+      "doneWhen": "grounding-54321、pmr-release、breath-478、imagery-safeplace 各有可播的完整引导脚本（进段 + 分秒 cue）；落在 modules/；不新增 planId",
+      "note": "docs/agent-lab/training/modules/{planId}/guidance.md|.json；索引 modules/overload/README.md。超载染色用窗口/标签。回写 presets 须总控批准。"
+    },
+    {
+      "id": "T-4",
+      "agent": "consultant",
+      "status": "done",
+      "title": "17 模块引导文案 md 补齐",
+      "doneWhen": "目录全部 17 个 planId 在 modules/{id}/guidance.md 有进段口播与分秒短句；有总索引",
+      "note": "索引 docs/agent-lab/training/modules/README.md。原先仅超载四模块有文案，其余 13 个已补。"
+    },
+    {
+      "id": "T-5",
+      "agent": "consultant",
+      "status": "review",
+      "title": "超载四模块：交互动效与逐字稿意义匹配 + 演示",
+      "doneWhen": "grounding-54321 / pmr-release / breath-478 / imagery-safeplace 各有口播阶段↔画面事件对照；可打开演示页用协议钟验收；脑电只改品质；不改 src/",
+      "note": "docs/agent-lab/training/modules/overload/interactive-motion.md + interactive-demo.html。落地产品画面须总控开 F 票（对齐 F-12 超载侧）。"
+    }
+  ],
+  "blocked": []
+}

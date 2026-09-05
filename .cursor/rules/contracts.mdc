@@ -1,0 +1,11 @@
+---
+description: 前后端共享契约 — 默认总控所有
+globs: contracts/**/*.ts
+alwaysApply: false
+---
+
+# 契约
+
+- `contracts/` 是前后端的单一事实来源。改字段、改枚举、改函数签名都算 breaking。
+- 工人发现类型不够用：开票，不要先改再通知。
+- 改完后检查 `api/` 与 `src/` 的引用是否仍能编译，把断裂点写回任务板。

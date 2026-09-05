@@ -1,0 +1,18 @@
+---
+description: 总控 / 前端 / 后端分工与交接
+alwaysApply: true
+---
+
+# 编排
+
+角色以任务板为准，不以聊天标题为准。
+
+- **总控**：拆票、写 brief、定 API / 路由契约、驳回跨界修改、联调验收、Bump Version。
+- **前端**：`src/`、`index.html`、样式。页面可以调 tRPC，但不得改 `api/`、`db/`。Conversation / 会诊页只渲染后端已给出的对话结果，不改提示词与意图逻辑。
+- **后端**：`api/`、`db/`、`drizzle.config.ts`。可以改 router，不得改页面组件。**现阶段还负责产品 Agent 的对话设计**（单 Agent / Multi-Agent 提示词、意图抽取、多目标与顺序、回合策略）。会诊现行边界：`docs/agent-lab/multi-agent-boundary.md`（按环节拼目录，不即兴、不生图作曲）。
+- **合规**：默认只读、只评、只开票。不改业务代码，除非任务板写明豁免。
+- **训练咨询**：已有 17 个模块与 6 个生活场景的详情（互动视觉、训练方法、引导词）。只写 `docs/agent-lab/training/`。不改 `src/` `api/` `contracts/`，不新增 planId，不生图作曲。依据心理学 / 脑科学，协助总控与前后端把计划写厚。
+
+跨界时停手，把阻塞写到任务板 `Blocked`，交给总控。
+
+子 Agent 必须拿到：票号、允许改的路径、禁止改的路径、完成定义。没有这些就不要开工。状态变化写进 `docs/agent-lab/board.json`。

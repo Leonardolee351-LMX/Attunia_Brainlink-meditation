@@ -1,0 +1,56 @@
+{
+  "planId": "breath-478",
+  "sceneTint": "overload",
+  "durationMin": 8,
+  "voice": { "person": "second", "tense": "present", "style": "warm-slow-female" },
+  "breath": { "pattern": "4-7-8", "cycleSec": 19, "altIfHoldAverse": "4-0-8" },
+  "forbidPhrases": ["会议室", "会刚散场"],
+  "preferPhrases": ["窗口", "标签", "身上的热"],
+  "openingOptional": "如果身体比脑子更吵——心口热、呼吸浅——我们先不关窗口。先用呼吸，把身上的热，泄出去一点。",
+  "phases": [
+    {
+      "name": "安顿",
+      "minutes": 1,
+      "instruction": "找一个能靠住的地方。舌尖轻轻抵在上颚。现在，用嘴把肺里的气全部呼出去。像放掉一个憋了很久的气球。先别管窗口。把身上的热，交给这一次呼气。",
+      "cues": [
+        { "atSec": 20, "text": "呼干净。空一点，没关系。" },
+        { "atSec": 35, "text": "先别管窗口。把身上的热，交给这一次呼气。" },
+        { "atSec": 48, "text": "下面我们数：四、七、八。乱了，就从下一次吸气重新开始。" }
+      ],
+      "instructionAltHoldAverse": "找一个能靠住的地方。舌尖轻轻抵在上颚。用嘴把肺里的气全部呼出去。下面我们数：四，然后直接慢慢呼八拍。中间可以不停。乱了，就从下一次吸气开始。"
+    },
+    {
+      "name": "4-7-8 循环",
+      "minutes": 6,
+      "instruction": "用鼻子安静吸气，心里数四。屏住，数七。噘起嘴唇，缓缓呼出，数八，发出很轻的「呼」。不需要完美。你只跟呼气走。",
+      "cues": [
+        { "atSec": 3, "text": "吸，二，三，四。" },
+        { "atSec": 8, "text": "停……让它停在身体里。" },
+        { "atSec": 16, "text": "呼——把气从嘴角轻轻漏出去。五、六、七、八。" },
+        { "atSec": 40, "text": "下一次一样。你只跟呼气走。" },
+        { "atSec": 120, "text": "呼气，可以再长一点点。" },
+        { "atSec": 240, "text": "标签上的热，跟着呼气往下走。" },
+        { "atSec": 330, "text": "乱了就放下。下一次吸气，再来。" }
+      ],
+      "cuesAltHoldAverse": [
+        { "atSec": 3, "text": "吸，二，三，四。" },
+        { "atSec": 8, "text": "呼——慢慢放。不用停在中间。" },
+        { "atSec": 40, "text": "你只跟呼气走。" }
+      ],
+      "adaptive": [
+        { "when": "after 90s arousal high", "text": "呼气再放长一点点。", "maxPerPhase": 1 },
+        { "when": "striving", "text": "不必数得很准。乱了就从下一次吸气开始。", "maxPerPhase": 1 }
+      ]
+    },
+    {
+      "name": "自然呼吸",
+      "minutes": 1,
+      "instruction": "把数数放下。让呼吸自己流动。你只是看着它。注意心跳。如果它比一分钟前慢了一点，就让它慢。窗口，可以晚一点再开。",
+      "cues": [
+        { "atSec": 25, "text": "不用再数。气自己会来。" },
+        { "atSec": 45, "text": "心跳如果慢了一点，就让它慢。" }
+      ]
+    }
+  ],
+  "closing": "可以慢慢睁开眼。身上轻了一寸，就够这一轮。"
+}

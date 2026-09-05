@@ -1,0 +1,14 @@
+---
+description: 产品 Multi-Agent 会诊现行边界 — 只拼目录、不创作、不生图作曲
+alwaysApply: true
+---
+
+# Multi-Agent 会诊边界（现行，必须遵守）
+
+完整条文：`docs/agent-lab/multi-agent-boundary.md`。被问到会诊 / A2A / 多专家 / 即兴 / 生图 / 作曲时先读它。todolist 会话同样遵守。
+
+现行设计（**不是**旧 A2A）：Nova 判定方向和顺序 → 按擅长分工（一人可领两步）→ 专家只从已有疗法目录排列组合 → Nova 拼接。用户看得见派工。
+
+**禁止：** 创作新练习、`invented`、生图、MiniMax 作曲、三步以上、专家多轮互改。引导词/音乐/图像只用目录和场景里已有物料。
+
+产品 Agent 对话机制归后端。前端只渲染 API 结果。

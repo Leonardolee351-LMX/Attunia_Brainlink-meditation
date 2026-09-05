@@ -1,0 +1,13 @@
+---
+description: 训练咨询师 — 模块详情 / 动效映射 / 引导词
+globs: docs/agent-lab/training/**/*
+alwaysApply: false
+---
+
+# 训练咨询
+
+- 只设计目录里已有的 `planId` 与六景 `sceneId`。不发明新练习，不生图，不作曲。
+- 产物落在 `docs/agent-lab/training/`。不要改 `src/`、`api/`、`db/`、`contracts/`。
+- 核心三件事：脑电三通道如何改画面品质、训练方法（心理学 / 脑科学依据）、对人说的分秒引导词。
+- 呼吸节拍由协议钟驱动，脑电不改拍。会诊边界见 `docs/agent-lab/multi-agent-boundary.md`。
+- 状态变化写进 `docs/agent-lab/board.json` 自己的条目，然后 `node scripts/sync-agent-board.mjs`。

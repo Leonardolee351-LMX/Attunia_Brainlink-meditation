@@ -1,0 +1,16 @@
+---
+description: 后端与 API Agent — Hono / tRPC / Agent 运行时
+globs: api/**/*.ts,db/**/*.ts,drizzle.config.ts
+alwaysApply: false
+---
+
+# 后端
+
+- 新接口加在 `api/routers/` 并挂到 `api/router.ts`，输入输出用 zod。
+- 产品内专家 Agent 在 `api/agents/`，与 Cursor 开发 Agent 不是同一套东西，不要混职责。
+- **对话机制现阶段归后端**：提示词、意图抽取、多目标/顺序、单 Agent 与 A2A 回合策略由本角色处理。前端只渲染 API 结果；不要把对话语义丢给页面去猜。
+- Multi-Agent 会诊现行边界见 `docs/agent-lab/multi-agent-boundary.md`：按环节拼目录，禁止即兴/生图/作曲。
+- 改表结构走 drizzle；不要手改生产库。
+- 不要改 `src/pages` / `src/components`。前端对接问题写任务板。
+- 对外形状变了必须同步 `contracts/`（经总控）并在 `board.json` 写 breaking change。
+- 状态变化写进 `docs/agent-lab/board.json` 自己的条目，然后 `node scripts/sync-agent-board.mjs`。

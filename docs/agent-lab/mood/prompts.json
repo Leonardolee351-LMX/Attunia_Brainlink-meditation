@@ -1,0 +1,124 @@
+{
+  "system": "NeuroFlow training card. Abstract geometric plane, NOT photography, NOT a landscape. One unique motif occupying a DISTINCT composition (not always centered). Soft bloom OK. Absolutely FORBIDDEN in every image: vertical light beam through the center, dark forest teal-green, repeating golden oval, church-of-light cross, foggy valley. No people, no text, no letters, no UI, no logos. Vertical 3:4.",
+  "shots": [
+    {
+      "id": "breath-478",
+      "ratio": "3:4",
+      "seed": 4781,
+      "crop": "30% 78%",
+      "prompt": "Pale ice-blue #D7E8F2 paper field. Motif: a single downward-tapering mint #7BC4A8 triangle occupying the LOWER third only, like a long exhale emptying. Rest of frame almost empty. Cool, clinical calm. No vertical beam."
+    },
+    {
+      "id": "breath-box",
+      "ratio": "3:4",
+      "seed": 4444,
+      "crop": "70% 30%",
+      "prompt": "Warm parchment #F3E6C8. Motif: a butter-yellow #F5E56B rounded SQUARE sitting in the UPPER-RIGHT quadrant, equal sides, faint inner square. Box breathing as a geometric tile. Not a glow orb. Not centered."
+    },
+    {
+      "id": "scan-progressive",
+      "ratio": "3:4",
+      "seed": 1515,
+      "crop": "50% 20%",
+      "prompt": "Stone grey #C5C8C2 background. Motif: seven thin HORIZONTAL bands of sage, each slightly offset, stacked like a ladder from top to bottom, denser at the top fading at the feet. Body-scan as a bar graph of light. No circles."
+    },
+    {
+      "id": "nidra-restore",
+      "ratio": "3:4",
+      "seed": 9090,
+      "crop": "50% 55%",
+      "prompt": "Near-black indigo #1B1E3A. Motif: one razor-thin HORIZONTAL white slit across the exact midline, barely glowing. Vast empty dark above and below. Yoga nidra as a single sleeping line. No orbs, no beams."
+    },
+    {
+      "id": "imagery-safeplace",
+      "ratio": "3:4",
+      "seed": 2121,
+      "crop": "22% 45%",
+      "prompt": "Dusty peach #E8C9B5 field. Motif: a cream rounded-rectangle PORTAL on the LEFT edge, half cropped by the frame, like a doorway you are about to enter. Safe island as architecture. No landscape, no trees."
+    },
+    {
+      "id": "drift-stars",
+      "ratio": "3:4",
+      "seed": 3333,
+      "crop": "80% 15%",
+      "prompt": "Ink navy #0B1020. Motif: sparse mint pin-dots clustered in the UPPER-LEFT, plus one tiny incomplete arc. Sleep drift as punctum, not a galaxy, not a ring in the center."
+    },
+    {
+      "id": "breath-bloom",
+      "ratio": "3:4",
+      "seed": 8888,
+      "crop": "50% 40%",
+      "prompt": "Blush paper #F4D6D0. Motif: four nested OFFSET circles of coral-pink, not concentric around center — blooming toward the top. Breath flower as overlapping disks. No green."
+    },
+    {
+      "id": "sound-downshift",
+      "ratio": "3:4",
+      "seed": 1212,
+      "crop": "50% 85%",
+      "prompt": "Muted plum #4A3A52. Motif: three stacked horizontal LOZENGES of decreasing brightness stepping DOWN the frame like a tempo ladder, largest at top. ISO downshift as bars. No ovals of dawn."
+    },
+    {
+      "id": "sound-morning",
+      "ratio": "3:4",
+      "seed": 6060,
+      "crop": "40% 18%",
+      "prompt": "Hot terracotta #C45C32 field. Motif: a wide pale-yellow HALF-DISK rising from the TOP edge only, like a sun still behind the frame. Morning sound as a cropped sunrise geometry. No arches, no green."
+    },
+    {
+      "id": "ritual-offwork",
+      "ratio": "3:4",
+      "seed": 2200,
+      "crop": "50% 88%",
+      "prompt": "Charcoal #161412. Motif: a warm tungsten RECTANGULAR bar at the very BOTTOM, like a closed drawer front catching lamplight. Off-work as a lid. No sky, no orbs."
+    },
+    {
+      "id": "ripple-tap",
+      "ratio": "3:4",
+      "seed": 5555,
+      "crop": "65% 60%",
+      "prompt": "Cool slate #9AA7B0. Motif: concentric CIRCLES originating from the LOWER-RIGHT corner, not the center, mint thin lines. Water tap as off-axis ripples. No vertical glow."
+    },
+    {
+      "id": "pmr-release",
+      "ratio": "3:4",
+      "seed": 7070,
+      "crop": "25% 50%",
+      "prompt": "Clay #C48A6A vs sand #E8DCC8 split diagonally. Motif: a small tight disc on the clay side and a larger loose disc on the sand side. Tension/release as two sizes. No anatomy."
+    },
+    {
+      "id": "grounding-54321",
+      "ratio": "3:4",
+      "seed": 5432,
+      "crop": "50% 90%",
+      "prompt": "Olive khaki #8A8F5A. Motif: five solid squares in a descending staircase from UPPER-LEFT to LOWER-RIGHT, each a step smaller, earthy ochre. 5-4-3-2-1 as a stair, not stacked triangles, not a moon."
+    },
+    {
+      "id": "loving-kindness",
+      "ratio": "3:4",
+      "seed": 1717,
+      "crop": "50% 35%",
+      "prompt": "Rose quartz #E7B7C8 field. Motif: a soft heart-adjacent rounded diamond of warm white in the UPPER half, like a sternum glow without a body. Kindness as a pale rhombus. No green, no navy."
+    },
+    {
+      "id": "coffee-nap",
+      "ratio": "3:4",
+      "seed": 1514,
+      "crop": "48% 70%",
+      "prompt": "Afternoon caramel #D4A574. Motif: one small dark-brown CIRCLE sitting on a wide pale horizontal capsule in the lower third, cup reduced to geometry. Nap as still life abstraction. No faces, no cafe."
+    },
+    {
+      "id": "morning-prime",
+      "ratio": "3:4",
+      "seed": 7071,
+      "crop": "50% 10%",
+      "prompt": "Cream #F7F1E3. Motif: a chevron / upward V of butter light pointing to the top edge, arms opening. Waking as an arrow of light. Not a pillar, not a sun disk."
+    },
+    {
+      "id": "walk-mindful",
+      "ratio": "3:4",
+      "seed": 1010,
+      "crop": "50% 80%",
+      "prompt": "Fog lilac #D5D0E0. Motif: a dotted PATH of alternating left-right ellipses receding in one-point perspective toward a vanishing point HIGH on the frame. Walking as punctuation marks. No trees, no green forest."
+    }
+  ]
+}

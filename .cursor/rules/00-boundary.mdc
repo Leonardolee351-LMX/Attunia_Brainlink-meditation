@@ -1,0 +1,12 @@
+---
+description: 所有对话的仓库边界 — 只允许改 NeuroFlow-AgentLab
+alwaysApply: true
+---
+
+# 项目边界
+
+- 只读写本仓库：`NeuroFlow-AgentLab`。禁止改兄弟目录、其它工程、用户主目录里的项目文件。
+- 允许：本仓库内的代码、本仓库的 git、本机 CLI（npm / git）。开发期间不要跑 EigenFlux。
+- 禁止：`move_agent_to_root` 到别的项目、在别的路径 `create_project`、把本仓内容复制去别处当主工作区。
+- 共享契约在 `contracts/`。前端和后端都依赖它；改字段形状必须先写进任务板并由总控批准。
+- 做完一轮先更新 `docs/agent-lab/board.json` 并运行 `node scripts/sync-agent-board.mjs`，不要只在对话里口头报完成。

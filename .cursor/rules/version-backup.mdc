@@ -1,0 +1,13 @@
+---
+description: 每 3 个 Version 打一份历史备份
+alwaysApply: true
+---
+
+# Version 与备份
+
+- 版本数字在 `docs/agent-lab/VERSION.json`。只有总控在用户验收一个可交付切片后 +1。
+- 一次 Version ≈ 一块能跑、能演示的切片，不是每一次文件保存。
+- 当 `version` 变为 3 的倍数（3、6、9…）时，总控必须立刻运行：
+  `node scripts/agent-backup.mjs`
+- 备份落到 `backups/`，并追加 `backups/MANIFEST.md`。不要把 `node_modules`、`.git`、旧备份打进去。
+- 工人不要自己改 VERSION 或偷偷备份；发现该备份却没备份，在任务板标记 `Need-Backup`。

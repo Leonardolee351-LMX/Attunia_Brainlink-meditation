@@ -1,0 +1,18 @@
+---
+description: 本仓库 Cursor / 客户端走奇绩 OpenAI-next 两套协议时的边界
+alwaysApply: true
+---
+
+# 奇绩 API（仅本仓库 + 隔壁 Brainlink）
+
+两套协议（同一把 Key，**不要**写进 git，**不要**写进 Cursor 全局 Settings → Models 让所有项目共用）：
+
+| 协议 | Base URL | 用途 |
+|------|----------|------|
+| OpenAI 兼容 | `https://api.openai-next.com/v1`（**要** `/v1`） | Cursor BYOK、Codex、本仓 LLM 客户端 |
+| Anthropic 原生 | `https://api.openai-next.com`（**不要** `/v1`） | Claude Code / Messages API；客户端会拼 `/v1/messages` |
+
+- 工作区无密钥 URL 在 `.cursor/settings.json`；密钥只在 gitignore 的 `.cursor/settings.local.json` 与 `config/llm-apis.local.md`。
+- 授权工作区：`NeuroFlow-AgentLab`、隔壁 `Brainlink Meditation/app`、或整个 `Brainlink Meditation` 父目录。其它仓库（NoAI-Lab、AB-TEST）不得用该 Key。
+- 不要把原始脑电、会话生理数据、用户可识别健康信息送进提示词或外部 API。
+- Cursor 自带的「GPT 5.6 Sol / Composer / Grok」等**订阅模型**不吃自定义 Key；开着 BYOK 再选它们会 Bad Request。要花奇绩：Override OpenAI Base URL + 自建模型 ID（如 `gpt-5.6-sol`）。操作说明见 `docs/agent-lab/qiji-cursor-howto.md`。

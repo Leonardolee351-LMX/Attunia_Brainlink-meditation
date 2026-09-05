@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "deadline": "2026-09-06",
+  "feedsTicket": "F-12",
+  "rule": "Breath pace from protocol clock. EEG changes visual quality only. No new planId.",
+  "eegSmoothingMs": 600,
+  "adaptiveCueCooldownSec": 45,
+  "voice": {
+    "style": "warm-slow-female",
+    "person": "second",
+    "tense": "present",
+    "forbid": ["channel scores", "judgment", "new exercises"]
+  },
+  "scenes": [
+    {
+      "sceneId": "clock-in",
+      "planId": "breath-box",
+      "name": "开工前奏",
+      "durationMin": 6,
+      "desiredShift": { "arousal": "keep", "focus": "up", "calm": "up" },
+      "method": {
+        "name": "箱式呼吸 4-4-4-4",
+        "why": "等长四拍给前额叶可预测的时间格子，把散落注意收成一个开工点，而不是把人压睡。"
+      },
+      "breath": {
+        "pattern": "box-4-4-4-4",
+        "cycleSec": 16,
+        "beats": [
+          { "id": "inhale", "sec": 4, "draw": "top-edge L→R" },
+          { "id": "hold-in", "sec": 4, "draw": "right-edge T→B" },
+          { "id": "exhale", "sec": 4, "draw": "bottom-edge R→L" },
+          { "id": "hold-out", "sec": 4, "draw": "left-edge B→T" }
+        ]
+      },
+      "visual": {
+        "kind": "box-square",
+        "forbid": ["generic-rings", "bloom-press"],
+        "bg": [18, 28, 24],
+        "glow": [245, 229, 107],
+        "eeg": {
+          "focus": "corner alignment and edge sharpness",
+          "calm": "inner fill bloom",
+          "arousal": "micro jitter and amber shift, never faster edges"
+        }
+      },
+      "phases": [
+        {
+          "name": "坐姿校准",
+          "minutes": 1,
+          "instruction": "找一个能靠住的地方坐下。双脚平放。想象头顶有一根线轻轻向上提。看一眼你等下要做的事，然后把目光收回来。",
+          "cues": [
+            { "atSec": 20, "text": "双脚踩实。肩膀不用端着。" },
+            { "atSec": 40, "text": "屏幕上会有一个正方形。你只跟着它的边走。" }
+          ]
+        },
+        {
+          "name": "四方循环",
+          "minutes": 4,
+          "instruction": "吸气四拍——停四拍——呼气四拍——停四拍。像在空气中画一个正方形。注意力跑了，就带回正在长出来的那条边。",
+          "cues": [
+            { "atSec": 4, "text": "吸。" },
+            { "atSec": 20, "text": "停。边还在。" },
+            { "atSec": 36, "text": "呼。把气慢慢放完。" },
+            { "atSec": 52, "text": "再停一下。下一条边会自己来。" }
+          ],
+          "adaptive": [
+            { "id": "refocus", "when": "focus<40 for 8s", "text": "注意力跑了，就带回这条边。", "maxPerPhase": 1 },
+            { "id": "ease", "when": "arousal>75 for 8s", "text": "边可以画慢一点，不必用力。", "maxPerPhase": 1 }
+          ]
+        },
+        {
+          "name": "定锚",
+          "minutes": 1,
+          "instruction": "最后一次四方呼吸。睁开眼之前，对自己说：接下来这段时间，只有这一件事。",
+          "cues": [{ "atSec": 40, "text": "方块可以放下了。你带着这个点，开始工作。" }]
+        }
+      ]
+    },
+    {
+      "sceneId": "post-meet",
+      "planId": "breath-478",
+      "name": "会后留白",
+      "durationMin": 8,
+      "desiredShift": { "arousal": "down", "focus": "keep", "calm": "up" },
+      "method": {
+        "name": "4-7-8 生理刹车",
+        "why": "加长呼气让副交感占上风；会后要泄掉残留心率，不要求再抬专注。屏息不适改为 4-0-8。"
+      },
+      "breath": {
+        "pattern": "4-7-8",
+        "cycleSec": 19,
+        "altIfHoldAverse": "4-0-8",
+        "beats": [
+          { "id": "inhale", "sec": 4, "draw": "gather light at apex" },
+          { "id": "hold", "sec": 7, "draw": "suspend, no expand" },
+          { "id": "exhale", "sec": 8, "draw": "drain down triangle, dust falls" }
+        ]
+      },
+      "visual": {
+        "kind": "exhale-triangle",
+        "forbid": ["box-square", "generic-rings"],
+        "bg": [16, 18, 32],
+        "glow": [184, 242, 201],
+        "eeg": {
+          "arousal": "leftover meeting-dust density",
+          "calm": "how empty and mint the field is after drain",
+          "focus": "trail coherence only, do not demand a sharp point"
+        }
+      },
+      "phases": [
+        {
+          "name": "安顿",
+          "minutes": 1,
+          "instruction": "找一个能靠住的地方。舌尖轻轻抵上颚。用嘴把肺里的气全部呼出去，像放掉一个憋了很久的气球。",
+          "cues": [
+            { "atSec": 25, "text": "会议室还留在身上的那一点热，交给这一次呼气。" },
+            { "atSec": 45, "text": "下一次我们会数：四、七、八。乱了就从下一次吸气重新开始。" }
+          ]
+        },
+        {
+          "name": "4-7-8 循环",
+          "minutes": 6,
+          "instruction": "用鼻子安静吸气，心里数四。屏住，数七。噘起嘴唇，缓缓呼出，数八，发出很轻的「呼」。不需要完美。",
+          "cues": [
+            { "atSec": 3, "text": "吸，二，三，四。" },
+            { "atSec": 8, "text": "停……让它停在身体里。" },
+            { "atSec": 16, "text": "呼——把气从嘴角轻轻漏出去。" },
+            { "atSec": 40, "text": "下一次一样。你只跟呼气走。" }
+          ],
+          "adaptive": [
+            { "id": "lengthen-exhale", "when": "after 90s arousal>70", "text": "呼气再放长一点点。", "maxPerPhase": 1 },
+            { "id": "stop-striving", "when": "arousal>70 and focus>70", "text": "不必数得很准，乱了就从下一次吸气开始。", "maxPerPhase": 1 }
+          ]
+        },
+        {
+          "name": "自然呼吸",
+          "minutes": 1,
+          "instruction": "把数数放下。让呼吸自己流动，你只是看着它。",
+          "cues": [{ "atSec": 30, "text": "注意心跳。它比一分钟前慢了一点。" }]
+        }
+      ]
+    },
+    {
+      "sceneId": "clock-out",
+      "planId": "ritual-offwork",
+      "name": "下工仪式",
+      "durationMin": 10,
+      "desiredShift": { "arousal": "down", "focus": "keep", "calm": "up" },
+      "method": {
+        "name": "心理脱离仪式",
+        "why": "先封存未完成（认知闭合），再把注意交给生活感官。这是下班，不是睡前，不要做成 Nidra。"
+      },
+      "breath": {
+        "pattern": "recovery-5-7",
+        "cycleSec": 12,
+        "spokenCount": false,
+        "beats": [
+          { "id": "inhale", "sec": 5, "draw": "warm seam breathes in" },
+          { "id": "exhale", "sec": 7, "draw": "lid settles, glow spreads" }
+        ]
+      },
+      "visual": {
+        "kind": "drawer-lid",
+        "forbid": ["box-square", "exhale-triangle", "sleep-starfield"],
+        "bg": [12, 10, 14],
+        "glow": [245, 200, 120],
+        "eeg": {
+          "arousal": "unfiled tick count and lid openness",
+          "calm": "indoor warm fill",
+          "focus": "life-side texture clarity, keep only"
+        }
+      },
+      "phases": [
+        {
+          "name": "盘点封存",
+          "minutes": 3,
+          "instruction": "把今天没做完的事在脑子里快速过一遍。对每一件说：我知道你在这儿，明天上午我会处理你。然后想象把它们放进一个抽屉，关上。",
+          "cues": [
+            { "atSec": 35, "text": "第一件没做完的。看见它，放进去。" },
+            { "atSec": 75, "text": "下一件。不用排序，也不用解决。" },
+            { "atSec": 120, "text": "抽屉还张着一点。剩下的，也放进去。" },
+            { "atSec": 160, "text": "现在把盖子往下带。不是忘掉，是先收好。" }
+          ],
+          "adaptive": [
+            { "id": "limit-three", "when": "arousal>70 for 8s", "text": "可以只放三件最吵的。其它的，盖子合上以后就不翻了。", "maxPerPhase": 1 }
+          ]
+        },
+        {
+          "name": "感官换挡",
+          "minutes": 5,
+          "instruction": "现在把注意力完全交给眼前的生活。如果在做菜，听切菜的声音、闻食材的气味。如果在路上，感受脚步和晚风。工作不在这里，而你在。",
+          "cues": [
+            { "atSec": 30, "text": "你的手现在碰到的是什么。" },
+            { "atSec": 90, "text": "空气是凉的还是闷的。只是感觉。" },
+            { "atSec": 160, "text": "远处有什么声音。让它在，不用命名。" },
+            { "atSec": 230, "text": "工作已经在抽屉里。你不用再打开。" }
+          ]
+        },
+        {
+          "name": "入场",
+          "minutes": 2,
+          "instruction": "深呼吸一次。对自己说：工作已结束，今晚属于我。从现在开始，你不是角色，你是你自己。",
+          "cues": [
+            { "atSec": 50, "text": "盖子已经合上。今晚不用再打开。" },
+            { "atSec": 90, "text": "带着这个身体，去下一件生活里的事。" }
+          ]
+        }
+      ]
+    }
+  ]
+}

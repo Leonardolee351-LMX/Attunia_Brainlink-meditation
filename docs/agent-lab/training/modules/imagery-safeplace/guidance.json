@@ -1,0 +1,50 @@
+{
+  "planId": "imagery-safeplace",
+  "sceneTint": "overload",
+  "durationMin": 12,
+  "voice": { "person": "second", "tense": "present", "style": "warm-slow-female" },
+  "contraindicationsNote": ["acute panic: grounding or 4-7-8 first", "dissociation: offer return to grounding-54321"],
+  "visualConstraint": "safe-portal geometry only; no generated landscape",
+  "openingOptional": "有时候窗口关不上，是因为脑子还在演「没做完的事」。这十二分钟，我们不解决问题。我们只去一个地方——只有你能进的地方。",
+  "phases": [
+    {
+      "name": "放松诱导",
+      "minutes": 3,
+      "instruction": "闭上眼睛。跟三次深呼吸走。每次呼气，想象肩膀往下沉一点点。像卸下一个很重的背包。门，会在左边等你。",
+      "cues": [
+        { "atSec": 20, "text": "第一次呼气。背包带，松一扣。" },
+        { "atSec": 70, "text": "第二次。肩再低一点。" },
+        { "atSec": 120, "text": "第三次。把脸上的用力，也呼出去。" },
+        { "atSec": 150, "text": "门会在左边等你。你不用跑。慢慢走过去就行。" }
+      ]
+    },
+    {
+      "name": "场景建构",
+      "minutes": 7,
+      "instruction": "想象一个让你感到绝对安全的地方。可以是真实去过的，也可以是完全虚构的。那里的光线是什么颜色？空气是什么温度？远处有什么声音？用眼睛、皮肤、耳朵，把它搭得清楚一点。这个地方只属于你。没有任何人可以进来。窗口，不在这里。",
+      "cues": [
+        { "atSec": 30, "text": "先定光线。亮一点，或暗一点，都可以。" },
+        { "atSec": 90, "text": "空气是凉的，还是暖的。让皮肤告诉你。" },
+        { "atSec": 160, "text": "远处有没有一种声音。很远也行。让它在。" },
+        { "atSec": 230, "text": "脚下踩着什么。土地、地板、沙子，或别的。" },
+        { "atSec": 300, "text": "如果有一个气味，很淡，也可以留下。" },
+        { "atSec": 360, "text": "没有人能进来。窗口不在这里。你只是待着。" },
+        { "atSec": 400, "text": "若念头又来：看见它，不要跟走。回到光线，或脚下。" }
+      ],
+      "adaptive": [
+        { "when": "can't settle / can't form image", "text": "不必把地方想完整。有一扇门，就够待一会儿。", "maxPerPhase": 1 }
+      ]
+    },
+    {
+      "name": "锚定返回",
+      "minutes": 2,
+      "instruction": "把右手轻轻放在心口。记住这个感觉。以后任何时候，只要做这个手势，你可以在几秒钟内回到这里。现在，慢慢回到房间。门还在。房间也还在。你可以晚一点，再开那些窗口。",
+      "cues": [
+        { "atSec": 35, "text": "手在心口。门还在。" },
+        { "atSec": 70, "text": "动一动手指。脚尖。" },
+        { "atSec": 100, "text": "睁开眼。房间还在。你可以晚一点再开窗口。" }
+      ]
+    }
+  ],
+  "closing": "安全岛不是逃避。它是你给自己留的一寸空，好让神经系统先落地。"
+}

@@ -1,0 +1,464 @@
+{
+  "version": 2,
+  "supersedes": "slice-sept6-three-scenes",
+  "feedsTicket": "F-12",
+  "f12PrimarySuggest": ["breath-box", "grounding-54321", "ritual-offwork"],
+  "rule": "Protocol clock drives pace. EEG changes quality only. No new planId. Same module, scene tint only.",
+  "eegSmoothingMs": 600,
+  "adaptiveCueCooldownSec": 45,
+  "scenes": [
+    {
+      "sceneId": "clock-in",
+      "name": "开工前奏",
+      "accent": "#F5E56B",
+      "desiredShift": { "arousal": "keep", "focus": "up", "calm": "up" },
+      "primaryPlanId": "breath-box",
+      "relatedPlanIds": ["breath-box", "walk-mindful", "breath-bloom"]
+    },
+    {
+      "sceneId": "overload",
+      "name": "超载减负",
+      "userName": "大脑超载",
+      "accent": "#FF6B4A",
+      "desiredShift": { "arousal": "down", "focus": "keep", "calm": "up" },
+      "primaryPlanId": "grounding-54321",
+      "relatedPlanIds": ["grounding-54321", "pmr-release", "breath-478", "imagery-safeplace"]
+    },
+    {
+      "sceneId": "clock-out",
+      "name": "下工仪式",
+      "accent": "#111111",
+      "desiredShift": { "arousal": "down", "focus": "keep", "calm": "up" },
+      "primaryPlanId": "ritual-offwork",
+      "relatedPlanIds": ["ritual-offwork", "sound-downshift", "pmr-release", "scan-progressive"]
+    }
+  ],
+  "modules": [
+    {
+      "planId": "breath-box",
+      "name": "箱式呼吸 · 专注前奏",
+      "scenes": ["clock-in"],
+      "durationMin": 6,
+      "visual": { "kind": "box-square", "bg": [18, 28, 24], "glow": [245, 229, 107], "forbid": ["generic-rings", "bloom-press", "ground-stairs"] },
+      "breath": { "pattern": "box-4-4-4-4", "cycleSec": 16 },
+      "eeg": { "focus": "corner alignment", "calm": "inner fill", "arousal": "jitter, never faster edges" },
+      "phases": [
+        {
+          "name": "坐姿校准",
+          "minutes": 1,
+          "instruction": "找一个能靠住的地方坐下。双脚平放。想象头顶有一根线轻轻向上提。看一眼你等下要做的事，然后把目光收回来。",
+          "cues": [
+            { "atSec": 20, "text": "双脚踩实。肩膀不用端着。" },
+            { "atSec": 40, "text": "屏幕上会有一个正方形。你只跟着它的边走。" }
+          ]
+        },
+        {
+          "name": "四方循环",
+          "minutes": 4,
+          "instruction": "吸气四拍——停四拍——呼气四拍——停四拍。像在空气中画一个正方形。注意力跑了，就带回正在长出来的那条边。",
+          "cues": [
+            { "atSec": 4, "text": "吸。" },
+            { "atSec": 20, "text": "停。边还在。" },
+            { "atSec": 36, "text": "呼。把气慢慢放完。" },
+            { "atSec": 52, "text": "再停一下。下一条边会自己来。" }
+          ],
+          "adaptive": [
+            { "when": "focus<40 for 8s", "text": "注意力跑了，就带回这条边。" },
+            { "when": "arousal>75 for 8s", "text": "边可以画慢一点，不必用力。" }
+          ]
+        },
+        {
+          "name": "定锚",
+          "minutes": 1,
+          "instruction": "最后一次四方呼吸。睁开眼之前，对自己说：接下来这段时间，只有这一件事。",
+          "cues": [{ "atSec": 40, "text": "方块可以放下了。你带着这个点，开始工作。" }]
+        }
+      ]
+    },
+    {
+      "planId": "walk-mindful",
+      "name": "正念行走",
+      "scenes": ["clock-in"],
+      "durationMin": 10,
+      "visual": { "kind": "footpath-dots", "bg": [28, 24, 36], "glow": [213, 208, 224], "forbid": ["box-square", "bloom-press"], "safety": "do not require staring while in traffic" },
+      "breath": { "pattern": "steps-3-3", "spoken": "inhale 3 steps, exhale 3 steps" },
+      "eeg": { "focus": "steps stay on the path", "calm": "fog softness", "arousal": "step jitter" },
+      "phases": [
+        {
+          "name": "起步",
+          "minutes": 2,
+          "instruction": "用平时的速度走。先注意脚底：脚跟落地、重心前移、脚尖离地。只是注意，不用改变什么。",
+          "cues": [
+            { "atSec": 25, "text": "先看路，再看一眼屏幕就够了。" },
+            { "atSec": 70, "text": "脚跟。脚心。脚尖。下一步也一样。" }
+          ]
+        },
+        {
+          "name": "节拍",
+          "minutes": 5,
+          "instruction": "让呼吸跟上脚步。吸气走三步，呼气走三步。走神了没关系，回到脚底的触感就好。",
+          "cues": [
+            { "atSec": 20, "text": "吸——一步、两步、三步。" },
+            { "atSec": 50, "text": "呼——一步、两步、三步。" },
+            { "atSec": 120, "text": "走神了就回脚底。路还在。" }
+          ],
+          "adaptive": [{ "when": "focus<40 for 8s", "text": "不用走得更整齐。回到这一步就好。" }]
+        },
+        {
+          "name": "打开",
+          "minutes": 3,
+          "instruction": "把注意力从脚底扩大到周围：风、声音、光线。你不是在路过这条街，你是在这条街上。",
+          "cues": [
+            { "atSec": 30, "text": "脸上的风，或空调。" },
+            { "atSec": 90, "text": "带着这个步子，走到你要开始的那张桌子。" }
+          ]
+        }
+      ]
+    },
+    {
+      "planId": "breath-bloom",
+      "name": "呼吸之花",
+      "scenes": ["clock-in"],
+      "durationMin": 6,
+      "interactive": "bloom",
+      "visual": { "kind": "bloom-flower", "tint": "butter-coral", "bg": [22, 18, 16], "glow": [245, 200, 150], "forbid": ["default-mint-only"], "note": "Existing BreathBloom must read EEG for quality; pace stays 4-4." },
+      "breath": { "pattern": "press-4-release-4", "cycleSec": 8 },
+      "eeg": { "focus": "petal angle evenness", "calm": "outer glow", "arousal": "core jitter" },
+      "phases": [
+        {
+          "name": "认识你的花",
+          "minutes": 1,
+          "instruction": "屏幕中央有一朵尚未开放的花。用手指按住它——花瓣随吸气绽开；松开，随呼气合拢。先试一次。",
+          "cues": [
+            { "atSec": 15, "text": "按住，吸。" },
+            { "atSec": 35, "text": "松开，呼。" },
+            { "atSec": 50, "text": "你的手就是节拍。花只是跟着你。" }
+          ]
+        },
+        {
+          "name": "同步循环",
+          "minutes": 4,
+          "instruction": "跟着花的节奏。按住，吸——花瓣开到最大；松开，呼——看它收回。你的呼吸有多慢，花就开得多慢。",
+          "cues": [],
+          "adaptive": [{ "when": "press too short or too frequent", "text": "按满四拍再放。不必用力。" }]
+        },
+        {
+          "name": "放手",
+          "minutes": 1,
+          "instruction": "最后一次让花绽开。然后把手放下，只看着它自己开合——你的呼吸已经记住了这个节奏。",
+          "cues": [{ "atSec": 35, "text": "花可以自己开了。你带着这个节奏，去第一件事。" }]
+        }
+      ]
+    },
+    {
+      "planId": "grounding-54321",
+      "name": "感官着陆 5-4-3-2-1",
+      "scenes": ["overload"],
+      "durationMin": 5,
+      "visual": { "kind": "ground-stairs", "bg": [20, 16, 14], "glow": [255, 107, 74], "land": [168, 191, 176], "forbid": ["box-square", "exhale-triangle"] },
+      "breath": { "pattern": "none-until-last", "lastExhaleSec": 8 },
+      "eeg": { "arousal": "tab fragments behind stairs", "calm": "sage ground", "focus": "current stair clarity" },
+      "phases": [
+        {
+          "name": "5 样东西 · 看",
+          "minutes": 1,
+          "instruction": "环顾四周，在心里说出你看到的 5 样东西。不用特别，桌角、水杯、光斑都可以。慢慢说，一样一样来。",
+          "cues": [
+            { "atSec": 12, "text": "第一样。看见它。" },
+            { "atSec": 24, "text": "第二样。" },
+            { "atSec": 36, "text": "第三样。" },
+            { "atSec": 48, "text": "第四样。" },
+            { "atSec": 56, "text": "第五样。它们都在这儿。" }
+          ]
+        },
+        {
+          "name": "4 种触感 · 摸",
+          "minutes": 1,
+          "instruction": "找到 4 种触感：衣料、桌面的凉、脚底的支撑、手心的温度。每种停几秒。",
+          "cues": [
+            { "atSec": 10, "text": "衣料。" },
+            { "atSec": 25, "text": "桌面，或扶手。" },
+            { "atSec": 40, "text": "脚底踩着的地方。" },
+            { "atSec": 52, "text": "手心。热的或凉的，都算。" }
+          ]
+        },
+        {
+          "name": "3 种声音 · 听",
+          "minutes": 1,
+          "instruction": "闭上眼，找出周围 3 种声音。远处的也算，自己的呼吸也算。只是听，不评价。",
+          "cues": [
+            { "atSec": 12, "text": "第一种声音。" },
+            { "atSec": 32, "text": "再远一点的。" },
+            { "atSec": 50, "text": "呼吸也可以是第三种。" }
+          ]
+        },
+        {
+          "name": "2 种气味 · 1 口呼吸",
+          "minutes": 2,
+          "instruction": "留意 2 种气味，没有就回想一种。然后做一次又慢又长的呼气。你已经回到此时此地了。",
+          "cues": [
+            { "atSec": 20, "text": "第一种气味，哪怕很淡。" },
+            { "atSec": 50, "text": "第二种，或记忆里的也行。" },
+            { "atSec": 80, "text": "现在只做一次很长的呼气。" },
+            { "atSec": 100, "text": "标签可以先关上。你在这张椅子上。" }
+          ],
+          "adaptive": [{ "when": "arousal>75 at 180s session", "text": "可以只做看到的三样和脚底。够了。" }]
+        }
+      ]
+    },
+    {
+      "planId": "pmr-release",
+      "name": "渐进式肌肉放松",
+      "scenes": ["overload", "clock-out"],
+      "durationMin": 12,
+      "visual": {
+        "kind": "tense-release-discs",
+        "tint": { "overload": "clay-vs-sand", "clock-out": "night-sand-tungsten" },
+        "forbid": ["ground-stairs", "box-square"]
+      },
+      "breath": { "pattern": "tense-5-release-8", "cycleSec": 13, "force": "70-percent", "noHoldBreath": true },
+      "eeg": { "arousal": "how clenched the small disc is", "calm": "how fully the large disc blooms", "focus": "which pair is lit" },
+      "bodyOrder": ["hands", "forearms", "shoulders", "face", "belly", "legs"],
+      "phases": [
+        {
+          "name": "安顿",
+          "minutes": 2,
+          "instruction": "坐好或躺下，双脚踩实。只有一个动作：用力绷紧 5 秒，然后一下子松掉。我们先从手开始。",
+          "cues": [
+            { "atSec": 30, "text": "只用七成力。不要憋气。" },
+            { "atSec": 70, "text": "等一下我会数五下。松开的那一下，才是练习。" }
+          ],
+          "sceneExtra": { "clock-out": "这是把白天攒在肩膀里的力交出去，不是再练一轮。" }
+        },
+        {
+          "name": "紧-松循环",
+          "minutes": 8,
+          "instruction": "握紧拳头，五、四、三、二、一——松开，感受那股暖流。接下来是小臂、肩膀、脸、腹部、腿。一组一组来。",
+          "cues": [
+            { "atSec": 0, "text": "手。握紧——五、四、三、二、一。松开。" },
+            { "atSec": 80, "text": "小臂。同样，七成力。" },
+            { "atSec": 160, "text": "肩膀，往耳朵方向耸一下，然后放下来。" },
+            { "atSec": 240, "text": "脸。轻轻皱一下，再松开下巴。" },
+            { "atSec": 320, "text": "腹部，微微收，再交给椅背。" },
+            { "atSec": 400, "text": "腿。脚尖绷一下，再像陷进地板。" }
+          ],
+          "adaptive": [{ "when": "arousal>70 and focus>70", "text": "可以再轻一点。松开比绷紧重要。" }]
+        },
+        {
+          "name": "整体沉静",
+          "minutes": 2,
+          "instruction": "现在整个身体都松过了。安静坐着，感受和十二分钟前有什么不同。",
+          "cues": [{ "atSec": 50, "text": "不用评价松得够不够。差别本身就够了。" }]
+        }
+      ]
+    },
+    {
+      "planId": "breath-478",
+      "name": "4-7-8 生理刹车",
+      "scenes": ["overload"],
+      "durationMin": 8,
+      "visual": { "kind": "exhale-triangle", "dust": "clay-tabs", "bg": [20, 16, 18], "glow": [184, 242, 201], "forbid": ["meeting-copy", "box-square"] },
+      "breath": { "pattern": "4-7-8", "cycleSec": 19, "altIfHoldAverse": "4-0-8" },
+      "eeg": { "arousal": "tab-dust density", "calm": "emptiness after drain", "focus": "trail coherence only" },
+      "phases": [
+        {
+          "name": "安顿",
+          "minutes": 1,
+          "instruction": "找一个能靠住的地方。舌尖轻轻抵上颚。用嘴把肺里的气全部呼出去，像放掉一个憋了很久的气球。",
+          "cues": [
+            { "atSec": 25, "text": "先别管窗口。把身上的热，交给这一次呼气。" },
+            { "atSec": 45, "text": "下面数四、七、八。乱了就从下一次吸气开始。" }
+          ]
+        },
+        {
+          "name": "4-7-8 循环",
+          "minutes": 6,
+          "instruction": "用鼻子安静吸气，心里数四。屏住，数七。噘起嘴唇，缓缓呼出，数八，发出很轻的「呼」。",
+          "cues": [
+            { "atSec": 3, "text": "吸，二，三，四。" },
+            { "atSec": 8, "text": "停……让它停在身体里。" },
+            { "atSec": 16, "text": "呼——从嘴角漏出去。" },
+            { "atSec": 40, "text": "你只跟呼气走。" }
+          ],
+          "adaptive": [
+            { "when": "after 90s arousal>70", "text": "呼气再放长一点点。" },
+            { "when": "arousal>70 and focus>70", "text": "不必数准。" }
+          ]
+        },
+        {
+          "name": "自然呼吸",
+          "minutes": 1,
+          "instruction": "把数数放下。让呼吸自己流动。",
+          "cues": [{ "atSec": 30, "text": "心跳如果慢了一点，就让它慢。窗口可以晚一点再开。" }]
+        }
+      ]
+    },
+    {
+      "planId": "imagery-safeplace",
+      "name": "安全岛引导意象",
+      "scenes": ["overload"],
+      "durationMin": 12,
+      "visual": { "kind": "safe-portal", "bg": [36, 28, 26], "glow": [232, 201, 181], "forbid": ["generated-landscape"] },
+      "breath": { "pattern": "soft-unpaced" },
+      "eeg": { "arousal": "portal far and faint", "calm": "portal near and warm", "focus": "inner field clarity" },
+      "contraindications": ["acute panic: do grounding or 4-7-8 first", "dissociation: offer return to 5-4-3-2-1"],
+      "phases": [
+        {
+          "name": "放松诱导",
+          "minutes": 3,
+          "instruction": "闭上眼睛，跟三次深呼吸走。每次呼气，想象肩膀往下沉一点点，像卸下一个很重的背包。",
+          "cues": [
+            { "atSec": 20, "text": "第一次呼气，背包带松一扣。" },
+            { "atSec": 70, "text": "第二次。肩再低一点。" },
+            { "atSec": 120, "text": "第三次。门会在左边等你。" }
+          ]
+        },
+        {
+          "name": "场景建构",
+          "minutes": 7,
+          "instruction": "想象一个让你感到绝对安全的地方——去过的，或虚构的。光线什么颜色？空气什么温度？远处有什么声音？用五感把它搭清楚。这个地方只属于你。",
+          "cues": [
+            { "atSec": 30, "text": "先定光线。亮还是暗，都可以。" },
+            { "atSec": 90, "text": "空气是凉的还是暖的。" },
+            { "atSec": 160, "text": "有没有一种声音，很远。" },
+            { "atSec": 230, "text": "脚下踩着什么。" },
+            { "atSec": 300, "text": "没有人能进来。窗口不在这里。" }
+          ],
+          "adaptive": [{ "when": "arousal>75 for 12s", "text": "不必把地方想完整。有一扇门，就够待一会儿。" }]
+        },
+        {
+          "name": "锚定返回",
+          "minutes": 2,
+          "instruction": "右手轻轻放在心口，记住这个感觉。以后只要做这个手势，可以在几秒内回来。现在慢慢回到房间。",
+          "cues": [
+            { "atSec": 40, "text": "手在心口。门还在。" },
+            { "atSec": 80, "text": "睁开眼。房间还在。你可以晚一点再开窗口。" }
+          ]
+        }
+      ]
+    },
+    {
+      "planId": "ritual-offwork",
+      "name": "下班切换仪式",
+      "scenes": ["clock-out"],
+      "durationMin": 10,
+      "visual": { "kind": "drawer-lid", "bg": [12, 10, 14], "glow": [245, 200, 120], "forbid": ["box-square", "exhale-triangle", "sleep-starfield"] },
+      "breath": { "pattern": "recovery-5-7", "cycleSec": 12, "spokenCount": false },
+      "eeg": { "arousal": "unfiled ticks and lid openness", "calm": "indoor warm fill", "focus": "life-side texture" },
+      "phases": [
+        {
+          "name": "盘点封存",
+          "minutes": 3,
+          "instruction": "把今天没做完的事快速过一遍。对每一件说：我知道你在这儿，明天上午我会处理你。然后放进抽屉，关上。",
+          "cues": [
+            { "atSec": 35, "text": "第一件。看见它，放进去。" },
+            { "atSec": 75, "text": "下一件。不用排序，也不用解决。" },
+            { "atSec": 120, "text": "剩下的，也放进去。" },
+            { "atSec": 160, "text": "盖子往下带。不是忘掉，是先收好。" }
+          ],
+          "adaptive": [{ "when": "arousal>70 for 8s", "text": "可以只放三件最吵的。" }]
+        },
+        {
+          "name": "感官换挡",
+          "minutes": 5,
+          "instruction": "把注意力交给眼前的生活。做菜就听刀声、闻气味；在路上就感受脚步和晚风。工作不在这里，而你在。",
+          "cues": [
+            { "atSec": 30, "text": "手现在碰到的是什么。" },
+            { "atSec": 90, "text": "空气是凉的还是闷的。" },
+            { "atSec": 160, "text": "远处有什么声音。让它在。" },
+            { "atSec": 230, "text": "工作已经在抽屉里。" }
+          ]
+        },
+        {
+          "name": "入场",
+          "minutes": 2,
+          "instruction": "深呼吸一次。对自己说：工作已结束，今晚属于我。从现在开始，你不是角色，你是你自己。",
+          "cues": [
+            { "atSec": 50, "text": "盖子已经合上。今晚不用再打开。" },
+            { "atSec": 90, "text": "带着这个身体，去下一件生活里的事。" }
+          ]
+        }
+      ]
+    },
+    {
+      "planId": "sound-downshift",
+      "name": "降速音景沉浸",
+      "scenes": ["clock-out"],
+      "durationMin": 12,
+      "visual": { "kind": "iso-bars", "bg": [14, 10, 16], "glow": [180, 140, 160], "forbid": ["generic-blobs-only"], "note": "Replace SoundscapeField blobs with three descending lozenges for this plan." },
+      "breath": { "pattern": "unpaced-iso" },
+      "eeg": { "arousal": "top-bar brightness and pulse", "calm": "bottom-bar dominance", "focus": "whether ear stays on slowest layer" },
+      "phases": [
+        {
+          "name": "同步",
+          "minutes": 3,
+          "instruction": "戴上耳机。此刻的声音不急，和你现在几乎同频——你不用先改变自己，声音会先过来陪你。",
+          "cues": [
+            { "atSec": 40, "text": "不用跟上它。让它来就行。" },
+            { "atSec": 100, "text": "如果还觉得快，那是它先迁就你。" }
+          ]
+        },
+        {
+          "name": "降速",
+          "minutes": 7,
+          "instruction": "你不必盯着它变慢。如果思绪飘走，就把耳朵交给最慢的那个声部。",
+          "cues": [
+            { "atSec": 60, "text": "上面那一层会自己暗下去。" },
+            { "atSec": 180, "text": "找最慢的那一层，把耳朵放在那儿。" },
+            { "atSec": 300, "text": "工作的速度可以先不用。" }
+          ],
+          "adaptive": [{ "when": "arousal high in first 4 min", "text": "还可以再待在偏快的那一层一会儿。它会自己下来。" }]
+        },
+        {
+          "name": "悬停",
+          "minutes": 2,
+          "instruction": "声音已经接近静止。在这里再待一会儿，直到你准备好自己离开。",
+          "cues": [{ "atSec": 50, "text": "可以摘耳机，也可以再留半分钟。抽屉还在下面。" }]
+        }
+      ]
+    },
+    {
+      "planId": "scan-progressive",
+      "name": "渐进式身体扫描",
+      "scenes": ["clock-out"],
+      "durationMin": 15,
+      "visual": { "kind": "body-bands", "bg": [16, 16, 18], "glow": [197, 200, 194], "forbid": ["tense-release-discs", "mint-clinical"] },
+      "breath": { "pattern": "unpaced-scan" },
+      "eeg": { "arousal": "bands overlap and jitter", "calm": "bands soften and space out", "focus": "current band lit" },
+      "scanOrderSec": 90,
+      "phases": [
+        {
+          "name": "着陆",
+          "minutes": 2,
+          "instruction": "躺下或深深靠进椅背。感受身体被支撑着——你不用用力，椅子会接住你。做三次比平时更深的呼吸。",
+          "cues": [
+            { "atSec": 25, "text": "第一次。把背交给椅子。" },
+            { "atSec": 60, "text": "第二次。腿也可以沉。" },
+            { "atSec": 95, "text": "第三次。我们从上面开始往下走。" }
+          ]
+        },
+        {
+          "name": "分区扫描",
+          "minutes": 11,
+          "instruction": "把注意力带到头顶和脸，觉察温度和触感，然后允许它们松下来。慢慢向下。每到一个地方，只对那里说：你可以休息了。",
+          "cues": [
+            { "atSec": 0, "text": "头顶、额头、下颌。" },
+            { "atSec": 90, "text": "肩膀。有没有还端着。" },
+            { "atSec": 180, "text": "手臂到手指。" },
+            { "atSec": 270, "text": "胸口。呼吸从这里经过。" },
+            { "atSec": 360, "text": "腹部。不用收。" },
+            { "atSec": 450, "text": "大腿到膝盖。" },
+            { "atSec": 540, "text": "小腿、脚踝、脚底。" }
+          ],
+          "adaptive": [{ "when": "arousal stays high", "text": "不必等它完全松开。注意到，就可以往下走。" }]
+        },
+        {
+          "name": "整体整合",
+          "minutes": 2,
+          "instruction": "现在感受整个身体作为一个整体在呼吸。不评价任何感觉，来了就看着，走了就让它走。",
+          "cues": [{ "atSec": 50, "text": "今晚不用再把身体当工具。它已经下班了。" }]
+        }
+      ]
+    }
+  ]
+}

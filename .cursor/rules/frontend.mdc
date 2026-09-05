@@ -1,0 +1,15 @@
+---
+description: 前端网页 Agent — React / 路由 / 视觉
+globs: src/**/*.tsx,src/**/*.ts,src/**/*.css,index.html
+alwaysApply: false
+---
+
+# 前端
+
+- 路由以 `src/App.tsx` 为准，不要私自加「智能跳转」破坏封面 → 设备 → 校准 → home。
+- UI 用现有 shadcn / Tailwind 主题，不要新开一套视觉系统。
+- 数据走现有 tRPC；缺 API 时在任务板提 `Need-API`，不要在前端伪造后端源。
+- 产品 Agent 对话机制归后端。本角色只渲染 Chat / Consult 的 API 结果，不要改提示词、意图抽取或多目标顺序逻辑。
+- 设备相关 UI 可以读 `src/lib/live-device.ts` 等，不要改 `api/lib/serial-bridge-spawn.ts`。
+- 改完用浏览器把相关路由走一遍，不要只看截图。
+- 状态变化写进 `docs/agent-lab/board.json` 自己的条目，然后 `node scripts/sync-agent-board.mjs`。
