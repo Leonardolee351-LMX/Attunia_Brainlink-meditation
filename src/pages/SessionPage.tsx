@@ -2,12 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { type LiveBio } from "@/components/BioOrb";
 import PlayerAura from "@/components/PlayerAura";
+import OverloadVisual from "@/components/training-visuals/OverloadVisual";
+import { overloadVisualKind } from "@/lib/training-visual-registry";
 import DebriefPanel from "@/components/DebriefPanel";
 import { ComplianceDisclosure } from "@/components/ComplianceNote";
 import { trpc } from "@/providers/trpc";
 import type { BioSample, FinalDecision, GoalId, InventedPractice, TrainingPlan } from "@contracts/agents";
 import { recordSession } from "@/lib/memory";
 import { speakGuidance, stopGuidance } from "@/lib/tts";
+import {
+  BREATH_478_CUE_WINDOW_MS,
+  breath478CueText,
+  breath478SegAt,
+  patchBreath478Phases,
+  type Breath478Seg,
+} from "@/lib/breath-478-session";
 import { sceneIdForSession } from "@/lib/scene-audio";
 import { useSceneBgm } from "@/lib/use-scene-bgm";
 import { WORK_SCENE_BY_ID } from "@/lib/scenes";
@@ -176,14 +185,20 @@ export default function SessionPage() {
   const elapsedRef = useRef(0);
   const tickRef = useRef(0);
   const autoStartedRef = useRef(false);
+  /** breath-478：引导词结束后短 cue 窗口截止时间戳 */
+  const breathCueUntilRef = useRef(0);
+  const breathCueLastSegRef = useRef<Breath478Seg | null>(null);
+  const secondsLeftRef = useRef(0);
 
   const activePhases = useMemo(() => {
     if (!plan) return [];
+    // breath-478：前端覆写循环段为 2′（4-7-8）；API presets 仍可能是 6′
+    const base = plan.id === "breath-478" ? patchBreath478Phases(plan.phases) : plan.phases;
     const custom = handoff.customized;
-    const planTotal = plan.phases.reduce((s, p) => s + p.minutes, 0);
-    if (!custom || custom.durationMin === planTotal) return plan.phases;
+    const planTotal = base.reduce((s, p) => s + p.minutes, 0);
+    if (!custom || custom.durationMin === planTotal) return base;
     const scale = custom.durationMin / planTotal;
-    return plan.phases.map((p) => ({
+    return base.map((p) => ({
       ...p,
       minutes: Math.max(0.5, Math.round(p.minutes * scale * 2) / 2),
     }));
@@ -232,16 +247,64 @@ export default function SessionPage() {
     liveRef.current = seedLive();
     debriefMut.reset();
     autoStartedRef.current = false;
+    breathCueUntilRef.current = 0;
+    breathCueLastSegRef.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planId]);
 
+  secondsLeftRef.current = secondsLeft;
+
+  // 语音：普通阶段播 instruction；breath-478 循环段播完引导词后仅 ~20s 跟拍吸/屏/呼
   useEffect(() => {
-    if (running && voiceOn && !demoSpeed && phase) {
-      void speakGuidance(phase.instruction);
+    if (!running) {
+      stopGuidance();
+      breathCueUntilRef.current = 0;
+      breathCueLastSegRef.current = null;
+      return;
     }
-    if (!running) stopGuidance();
+    if (!voiceOn || demoSpeed || !phase || !plan) return;
+
+    let cancelled = false;
+    breathCueUntilRef.current = 0;
+    breathCueLastSegRef.current = null;
+
+    const run = async () => {
+      if (plan.id === "breath-478" && phaseIdx === 1) {
+        const result = await speakGuidance(phase.instruction);
+        if (cancelled || result === "cancelled") return;
+        // 开窗：之后约 20 秒内按 4-7-8 段切点提示；界面波形全程继续循环
+        breathCueUntilRef.current = Date.now() + BREATH_478_CUE_WINDOW_MS;
+        breathCueLastSegRef.current = null;
+        return;
+      }
+      await speakGuidance(phase.instruction);
+    };
+    void run();
+
+    return () => {
+      cancelled = true;
+      stopGuidance();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, phaseIdx, voiceOn]);
+  }, [running, phaseIdx, voiceOn, demoSpeed, plan?.id]);
+
+  // breath-478：引导词结束后的短 cue（吸气 / 屏住 / 呼气），超时即静音，视觉仍循环
+  useEffect(() => {
+    if (!running || !voiceOn || demoSpeed || plan?.id !== "breath-478" || phaseIdx !== 1) {
+      return;
+    }
+    const id = window.setInterval(() => {
+      const until = breathCueUntilRef.current;
+      if (!until || Date.now() > until) return;
+      const dur = phase ? Math.round(phase.minutes * 60) : 0;
+      const elapsed = Math.max(0, dur - secondsLeftRef.current);
+      const seg = breath478SegAt(elapsed);
+      if (seg === breathCueLastSegRef.current) return;
+      breathCueLastSegRef.current = seg;
+      void speakGuidance(breath478CueText(seg));
+    }, 280);
+    return () => window.clearInterval(id);
+  }, [running, voiceOn, demoSpeed, plan?.id, phaseIdx, phase]);
 
   useEffect(() => {
     resumeLiveSession();
@@ -349,7 +412,7 @@ export default function SessionPage() {
       <div className={`${PHONE_BLEED} items-center justify-center bg-[#0c0c0e] px-8 text-center text-white`}>
         <div className={PHONE_SAFE_TOP}>
           <p className="text-white/50">没有找到这个训练模块。</p>
-          <Link to="/home" className="mt-3 inline-block text-sm font-semibold underline">
+          <Link to="/explore" className="mt-3 inline-block text-sm font-semibold underline">
             返回总览
           </Link>
         </div>
@@ -402,13 +465,30 @@ export default function SessionPage() {
       ? `${pathStep.role}：${pathStep.when}。${phase?.instruction ?? activePhases[0]?.instruction ?? ""}`
       : scene?.description ?? activePhases[0]?.instruction;
 
+  const visualKind = overloadVisualKind(plan.id);
+  const phaseDurSec = phase ? Math.round(phase.minutes * 60) : 0;
+  const phaseElapsedSec =
+    running || finished ? Math.max(0, phaseDurSec - secondsLeft) : 0;
+  const sessionElapsedSec = played;
+
   return (
     <div className={`${PHONE_BLEED} bg-[#0c0c0e] text-white`}>
-      <PlayerAura liveRef={liveRef} sceneId={sceneId} />
+      {visualKind ? (
+        <OverloadVisual
+          kind={visualKind}
+          phaseIndex={phaseIdx}
+          phaseElapsedSec={phaseElapsedSec}
+          sessionElapsedSec={sessionElapsedSec}
+          running={running}
+          liveRef={liveRef}
+        />
+      ) : (
+        <PlayerAura liveRef={liveRef} sceneId={sceneId} />
+      )}
 
       <header className={`relative z-10 flex items-center justify-between px-5 pb-1 ${PHONE_SAFE_TOP}`}>
         <Link
-          to={scene ? `/scene/${scene.id}` : "/home"}
+          to={scene ? `/scene/${scene.id}` : "/explore"}
           className="flex h-11 w-11 items-center justify-center rounded-full text-white/80"
           aria-label="收起"
         >
