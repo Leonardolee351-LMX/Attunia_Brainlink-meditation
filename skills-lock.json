@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "brand-designer": {
+      "source": "daffy0208/ai-dev-standards",
+      "sourceType": "github",
+      "skillPath": "skills/brand-designer/SKILL.md",
+      "computedHash": "4848bb14290d7bc7b9264cab5fca3c42453a32f88a03bdb1cc4b5357117490e1"
+    },
+    "critique-brand-consistency": {
+      "source": "owl-listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "visual-critique/skills/critique-brand-consistency/SKILL.md",
+      "computedHash": "fd501bd982187dadf39b6c0fc979449639ed2cc7744fa675aa552e46ef98040d"
+    },
     "define-hypothesis": {
       "source": "product-on-purpose/pm-skills",
       "sourceType": "github",
@@ -78,6 +90,12 @@
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "106acf230014cbb43ca34e6410371321b56ca742f9ee0442e8ec05bf02eb0384"
+    },
+    "graphic-designer": {
+      "source": "charlie947/social-media-skills",
+      "sourceType": "github",
+      "skillPath": "skills/graphic-designer/SKILL.md",
+      "computedHash": "04caa57c50714a06564d04bf41e4c6020aae68bb57c184b565ff498626d7c15a"
     },
     "threejs-animation": {
       "source": "cloudai-x/threejs-skills",
