@@ -10,6 +10,8 @@ Attunia 是面向 **Work–Life Balance** 的 Soft Healthcare 产品原型：用
 本地仓库目录名可能仍为 `NeuroFlow-AgentLab`；**产品对外名称统一为 Attunia**。
 
 - GitHub：https://github.com/Leonardolee351-LMX/Attunia_Brainlink-meditation
+- GitHub Pages（静态 UI）：https://leonardolee351-lmx.github.io/Attunia_Brainlink-meditation/  
+  说明见 [`docs/agent-lab/github-pages.md`](docs/agent-lab/github-pages.md)（Pages **不能**跑 Agent API；完整可操作原型需另外部署后端）
 
 ### 界面速览
 
