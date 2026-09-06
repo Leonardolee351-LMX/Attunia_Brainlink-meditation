@@ -165,11 +165,11 @@ describe("【时间序列】复盘方向", () => {
     expect(neg.length).toBeGreaterThanOrEqual(20);
   });
 
-  it("复盘 deltas 应与序列首尾方向一致", () => {
+  it("复盘 deltas 应与序列首尾方向一致", async () => {
     const plan = PLANS[0];
     let agree = 0;
     for (const s of sessions) {
-      const d = analyzeSession(plan, s.targetGoal, s.samples);
+      const d = await analyzeSession(plan, s.targetGoal, s.samples);
       const observed = s.endState.arousal - s.startState.arousal;
       if (Math.abs(observed) < 1.5) {
         agree++;

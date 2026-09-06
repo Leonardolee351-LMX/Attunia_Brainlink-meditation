@@ -8,14 +8,17 @@ import { trpc } from "@/providers/trpc";
 import type { ChatAgentReply, ChatTurn, ComboRecommendation, UserState } from "@contracts/agents";
 import { loadBaseline } from "@/lib/baseline";
 import { getLiveSnapshot, isLiveHardware } from "@/lib/live-device";
-import { loadMemory } from "@/lib/memory";
+import { applyServerMemory, loadMemory } from "@/lib/memory";
 import { loadUserName } from "@/lib/user";
 import { CrisisResourceCard, detectCrisis } from "@/components/ComplianceNote";
 import type { HomeIntentState } from "@/lib/intent-route";
-import { clipSpeakText, speakGuidance, stopGuidance } from "@/lib/tts";
+import { stopGuidance } from "@/lib/tts";
 import ChatAgentBackdrop from "@/components/ChatAgentBackdrop";
+import AgentThinkingRail from "@/components/AgentThinkingRail";
+import ChatBioStatus, { type ChatBioSnapshot } from "@/components/ChatBioStatus";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { PHONE_BLEED, PHONE_SAFE_TOP } from "@/lib/onboarding-layout";
+import { compileHomeGreeting, markHomeVisit } from "@/lib/eeg-pulse";
 
 function defaultState(): UserState {
   const live = getLiveSnapshot().last;
@@ -39,16 +42,36 @@ function defaultState(): UserState {
 }
 
 const QUICK_PROMPTS = [
-  "刚开完会心跳很快,我有15分钟",
-  "请给我一些早起的 bgm",
-  "我压力很大,想快速放松下来以及专注到工作",
-  "做饭想要点氛围仪式感",
+  "刚开完会很累，可是接下来还要工作",
+  "好困，但是准备上班了",
+  "我感觉我的脑子停不下来",
+  "开完会静不下来，有十五分钟",
 ];
 
 interface Msg extends ChatTurn {
   payload?: ChatAgentReply;
   error?: boolean;
   crisis?: boolean;
+  /** 回复生成时的三通道快照，展示在 Tuno 名头与正文之间 */
+  bio?: ChatBioSnapshot;
+}
+
+function snapBioFromState(state: UserState): ChatBioSnapshot {
+  const live = getLiveSnapshot().last;
+  if (isLiveHardware() && live) {
+    return {
+      arousal: Math.round(live.arousal),
+      focus: Math.round(live.focus),
+      calm: Math.round(live.calm),
+      live: true,
+    };
+  }
+  return {
+    arousal: Math.round(state.arousal),
+    focus: Math.round(state.focus),
+    calm: Math.round(state.calm),
+    live: false,
+  };
 }
 
 function comboHeadline(title: string) {
@@ -254,6 +277,14 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [opening, setOpening] = useState(() => {
+    const live = getLiveSnapshot().last;
+    const bio =
+      isLiveHardware() && live
+        ? { arousal: live.arousal, focus: live.focus, calm: live.calm }
+        : null;
+    return compileHomeGreeting(bio).greeting;
+  });
   const chat = trpc.agent.chat.useMutation();
   const latestReplyRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -262,6 +293,21 @@ export default function ChatPage() {
   const userName = loadUserName() || "朋友";
 
   useEffect(() => () => stopGuidance(), []);
+
+  /** 每次重新进入 Homepage：按当下情绪重编开屏语；第一次用默认问句 */
+  useEffect(() => {
+    const live = getLiveSnapshot().last;
+    const bio =
+      isLiveHardware() && live
+        ? { arousal: live.arousal, focus: live.focus, calm: live.calm }
+        : { arousal: state.arousal, focus: state.focus, calm: state.calm };
+    const entryKey = location.key || "home";
+    const { greeting } = compileHomeGreeting(bio);
+    setOpening(greeting);
+    markHomeVisit(entryKey);
+    // 只在进入本页时刷新，不跟脑电实时跳字
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   const scrollToLatestReply = () => {
     window.setTimeout(() => {
@@ -272,10 +318,11 @@ export default function ChatPage() {
   const send = (text: string) => {
     const msg = text.trim();
     if (!msg || chat.isPending) return;
+    const bioSnap = snapBioFromState(state);
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setInput("");
     if (detectCrisis(msg)) {
-      setMessages((m) => [...m, { role: "assistant", content: "", crisis: true }]);
+      setMessages((m) => [...m, { role: "assistant", content: "", crisis: true, bio: bioSnap }]);
       scrollToLatestReply();
       return;
     }
@@ -284,9 +331,12 @@ export default function ChatPage() {
       { message: msg, history, state, llm: llmConfig, memory: loadMemory() },
       {
         onSuccess: (reply) => {
-          setMessages((m) => [...m, { role: "assistant", content: reply.reply, payload: reply }]);
+          applyServerMemory(reply.memory);
+          setMessages((m) => [
+            ...m,
+            { role: "assistant", content: reply.reply, payload: reply, bio: bioSnap },
+          ]);
           scrollToLatestReply();
-          void speakGuidance(clipSpeakText(reply.reply, 280), "tuno");
         },
         onError: (err) => {
           setMessages((m) => [
@@ -299,6 +349,7 @@ export default function ChatPage() {
                   ? "如果你刚填了 API Key,请检查 Key、Base URL 与模型名是否正确;也可以切回「规则引擎」先用着。"
                   : "可能是服务正在冷启动,稍等几秒再发一次试试。"),
               error: true,
+              bio: bioSnap,
             },
           ]);
           scrollToLatestReply();
@@ -350,11 +401,20 @@ export default function ChatPage() {
       <div className={`${PHONE_BLEED} bg-cream`}>
         <ChatAgentBackdrop />
         <div className={`relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-5 ${PHONE_SAFE_TOP}`}>
-          <div className="flex shrink-0 justify-end">
+          <div className="flex shrink-0 items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 pt-0.5">
+              <p className="text-[13px] text-ink/45">Hello {userName}</p>
+              <h1 className="font-display mt-2 max-w-[14ch] text-left text-[1.75rem] leading-snug font-bold text-ink">
+                {opening}
+              </h1>
+              <p className="mt-2 max-w-[30ch] text-left text-[12px] leading-relaxed text-ink/40">
+                不知道从哪开口也没关系——点下面一句，或者说说此刻的工作状态。
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-ink/40 transition hover:bg-white/70 hover:text-ink/65"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink/40 transition hover:bg-white/70 hover:text-ink/65"
               aria-label="设置"
               title="设置"
             >
@@ -362,23 +422,18 @@ export default function ChatPage() {
             </button>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-2">
-            <p className="text-[15px] text-ink/45">Hello {userName}</p>
-            <h1 className="font-display mt-2 max-w-[16ch] text-center text-[1.75rem] leading-snug font-bold text-ink">
-              今天想调适什么？
-            </h1>
-          </div>
+          <div className="min-h-0 flex-1" aria-hidden />
 
           <div className="shrink-0 space-y-3">
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {QUICK_PROMPTS.slice(0, 2).map((q) => (
+            <div className="flex flex-col gap-2">
+              {QUICK_PROMPTS.slice(0, 3).map((q) => (
                 <button
                   key={q}
                   type="button"
                   onClick={() => send(q)}
-                  className="rounded-full bg-white/90 px-3 py-1.5 text-[11px] text-ink/55 shadow-[0_6px_18px_-12px_rgba(17,17,17,0.28)] transition hover:bg-mint"
+                  className="rounded-[18px] bg-white/90 px-4 py-2.5 text-left text-[12px] leading-snug text-ink/65 shadow-[0_6px_18px_-12px_rgba(17,17,17,0.28)] transition hover:bg-mint"
                 >
-                  {q.length > 18 ? `${q.slice(0, 18)}…` : q}
+                  「{q}」
                 </button>
               ))}
             </div>
@@ -399,7 +454,7 @@ export default function ChatPage() {
     <div className={`${PHONE_BLEED} bg-cream`}>
       <div className={`relative z-10 flex min-h-0 flex-1 flex-col ${PHONE_SAFE_TOP}`}>
         <header className="flex shrink-0 items-center justify-between px-5 pb-2">
-          <p className="text-[13px] font-semibold text-ink">Conversation</p>
+          <p className="text-[13px] font-semibold text-ink">Home</p>
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
@@ -435,29 +490,18 @@ export default function ChatPage() {
                     </div>
                   )}
 
+                  {m.role === "assistant" && m.bio && !m.crisis && <ChatBioStatus bio={m.bio} />}
+
                   {m.crisis ? (
                     <CrisisResourceCard />
                   ) : (
                     <p
-                      role={m.role === "assistant" && !m.error ? "button" : undefined}
-                      tabIndex={m.role === "assistant" && !m.error ? 0 : undefined}
-                      onClick={() => {
-                        if (m.role !== "assistant" || m.error || !m.content.trim()) return;
-                        void speakGuidance(clipSpeakText(m.content, 280), "tuno");
-                      }}
-                      onKeyDown={(e) => {
-                        if (m.role !== "assistant" || m.error) return;
-                        if (e.key !== "Enter" && e.key !== " ") return;
-                        e.preventDefault();
-                        void speakGuidance(clipSpeakText(m.content, 280), "tuno");
-                      }}
-                      title={m.role === "assistant" && !m.error ? "点按听朗读" : undefined}
                       className={
                         m.role === "user"
                           ? "rounded-[22px] rounded-br-md bg-ink px-4 py-3 text-[14px] leading-relaxed text-white"
                           : m.error
                             ? "text-[14px] leading-relaxed text-clay"
-                            : "cursor-pointer text-[14px] leading-[1.65] text-ink"
+                            : "text-[14px] leading-[1.65] text-ink"
                       }
                     >
                       {m.content}
@@ -523,10 +567,7 @@ export default function ChatPage() {
           })}
 
           {chat.isPending && (
-            <div className="flex items-center gap-2 text-sm text-ink/40">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
-              Tuno 正在思考…
-            </div>
+            <AgentThinkingRail title="Tuno 正在想" className="mt-1" />
           )}
         </div>
 

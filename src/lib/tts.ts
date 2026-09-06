@@ -7,12 +7,19 @@
  * 4. 会诊专家：可选本机兜底（产品优先级更低）
  */
 
+/** 临时关闭：单 Agent / Multi-Agent 对话语音；训练页 speaker=guidance 仍可用 */
+export const AGENT_CHAT_VOICE_ENABLED = false;
+
 let currentAudio: HTMLAudioElement | null = null;
 let speakGen = 0;
 const duckers = new Set<(on: boolean) => void>();
 
 /** 训练引导、单 Agent：绝不走 SpeechSynthesis */
 const NO_BROWSER_SPEAKERS = new Set(["guidance", "tuno", "nova"]);
+
+function isAgentChatSpeaker(speaker: string): boolean {
+  return speaker !== "guidance";
+}
 
 export function subscribeGuidanceDuck(cb: (on: boolean) => void): () => void {
   duckers.add(cb);
@@ -123,7 +130,14 @@ export function clipSpeakText(text: string, max = 220): string {
   return `${t.slice(0, max).replace(/[，。；、\s]+$/, "")}。`;
 }
 
-export async function speakGuidance(text: string, speaker = "guidance") {
+/** @returns played=播完；silent=无音频；cancelled=被新一轮 speak / stop 打断 */
+export async function speakGuidance(
+  text: string,
+  speaker = "guidance",
+): Promise<"played" | "silent" | "cancelled"> {
+  if (!AGENT_CHAT_VOICE_ENABLED && isAgentChatSpeaker(speaker)) {
+    return "silent";
+  }
   const gen = ++speakGen;
   if (currentAudio) {
     currentAudio.pause();
@@ -146,23 +160,35 @@ export async function speakGuidance(text: string, speaker = "guidance") {
     const json = (await res.json()) as {
       result?: { data?: { json?: { audio: string | null; engine: string } } };
     };
-    if (gen !== speakGen) return;
+    if (gen !== speakGen) return "cancelled";
     const audio = json.result?.data?.json?.audio;
     if (typeof audio === "string" && audio.length > 0) {
       const el = new Audio(`data:audio/mp3;base64,${audio}`);
       el.volume = 0.9;
       currentAudio = el;
       setDucking(true);
-      el.onended = () => setDucking(false);
-      el.onerror = () => setDucking(false);
-      await el.play();
-      return;
+      const outcome = await new Promise<"played" | "silent" | "cancelled">((resolve) => {
+        el.onended = () => {
+          setDucking(false);
+          resolve(gen === speakGen ? "played" : "cancelled");
+        };
+        el.onerror = () => {
+          setDucking(false);
+          resolve(gen === speakGen ? "silent" : "cancelled");
+        };
+        void el.play().catch(() => {
+          setDucking(false);
+          resolve(gen === speakGen ? "silent" : "cancelled");
+        });
+      });
+      return outcome;
     }
   } catch {
     /* MiniMax 失败 */
   }
-  if (gen !== speakGen) return;
+  if (gen !== speakGen) return "cancelled";
   // 训练引导 / 单 Agent：禁止机器音，失败则静音
-  if (NO_BROWSER_SPEAKERS.has(speaker)) return;
+  if (NO_BROWSER_SPEAKERS.has(speaker)) return "silent";
   await speakByBrowser(clipped, speaker);
+  return gen === speakGen ? "played" : "cancelled";
 }

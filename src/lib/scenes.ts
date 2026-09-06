@@ -149,34 +149,36 @@ function gaussian(x: number, mu: number, sigma: number) {
 
 /**
  * 按一日工作节律 + 可选三通道状态打分。
- * 不含睡前 / 起床：深夜仍在工位时导向下工仪式。
+ * 节点与 DEMO_CLOCK_MARKS 对齐：8 开工 · 11 会后 · 12 午间 · 15 过载 · 16 走神 · 18 下班。
  */
 export function recommendWorkScene(hour: number, bio?: BioHint | null): WorkSceneId {
   const scores: Record<WorkSceneId, number> = {
-    "clock-in": gaussian(hour, 8.4, 1.35),
-    "post-meet": 0.12,
-    "lunch-tide": gaussian(hour, 12.4, 0.95),
-    overload: 0.16,
-    "drift-back": 0.1,
-    "clock-out": gaussian(hour, 18.6, 1.55),
+    "clock-in": gaussian(hour, 8.2, 0.95),
+    "post-meet": gaussian(hour, 11.0, 0.75),
+    "lunch-tide": gaussian(hour, 12.3, 0.7),
+    overload: gaussian(hour, 15.0, 0.65),
+    "drift-back": gaussian(hour, 16.0, 0.65),
+    "clock-out": gaussian(hour, 18.2, 0.95),
   };
 
-  if (hour >= 7 && hour < 10.5) scores["clock-in"] += 0.45;
-  if ((hour >= 10 && hour < 12) || (hour >= 14 && hour < 16.5)) scores["post-meet"] += 0.55;
-  if (hour >= 11.5 && hour < 14) scores["lunch-tide"] += 0.5;
-  if (hour >= 9 && hour < 18) scores["drift-back"] += 0.28;
-  if (hour >= 17 && hour < 22) scores["clock-out"] += 0.48;
+  // 软窗口：与时间轴标签一一对应，避免会后窗口吞掉下午过载/走神
+  if (hour >= 7.5 && hour < 10) scores["clock-in"] += 0.4;
+  if (hour >= 10 && hour < 11.6) scores["post-meet"] += 0.45;
+  if (hour >= 11.6 && hour < 13.8) scores["lunch-tide"] += 0.5;
+  if (hour >= 13.8 && hour < 15.55) scores.overload += 0.62;
+  if (hour >= 15.55 && hour < 17.25) scores["drift-back"] += 0.62;
+  if (hour >= 17.25 && hour < 22) scores["clock-out"] += 0.55;
   if (hour >= 22 || hour < 6) scores["clock-out"] += 0.42;
 
   if (bio) {
     if (bio.arousal >= 68 || (bio.arousal > 60 && bio.calm < 45)) {
-      scores.overload += 1.35;
+      scores.overload += 1.15;
     }
     if (bio.focus <= 48 && hour >= 9 && hour < 18) {
-      scores["drift-back"] += 0.72;
+      scores["drift-back"] += 0.85;
     }
-    if (bio.arousal >= 62 && bio.focus >= 55 && hour >= 10 && hour < 17) {
-      scores["post-meet"] += 0.4;
+    if (bio.arousal >= 62 && bio.focus >= 55 && hour >= 10 && hour < 12) {
+      scores["post-meet"] += 0.35;
     }
     if (bio.focus < 55 && hour >= 7 && hour < 10.5) {
       scores["clock-in"] += 0.32;

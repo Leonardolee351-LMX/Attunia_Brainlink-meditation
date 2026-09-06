@@ -7,31 +7,38 @@ import SessionPage from "./pages/SessionPage";
 import ScenePage from "./pages/ScenePage";
 import ProfilePage from "./pages/ProfilePage";
 import SplashPage from "./pages/onboarding/SplashPage";
+import PurposePage from "./pages/onboarding/PurposePage";
 import CoverPage from "./pages/onboarding/CoverPage";
 import DevicePage from "./pages/onboarding/DevicePage";
 import CalibrationPage from "./pages/onboarding/CalibrationPage";
 
 /**
  * 路由是确定性的,不读任何标记:
- *   /            Attunia 产品开启页（每次打开先看到）
- *   /onboarding  读懂你的大脑 → device → calibration → /home
- *   校准可跳过,同样落到 /home
+ *   /            Attunia 开屏
+ *   /purpose     四页产品说明书（是什么 / 帮什么 / 怎么用 / 边界）
+ *   /onboarding  设备先认识你 → device → calibration → /home
+ *   /home        对话 Home
+ *   /explore     探索训练计划
  */
 export default function App() {
   return (
     <AppFrame>
       <Routes>
         <Route path="/" element={<SplashPage />} />
+        <Route path="/purpose" element={<PurposePage />} />
+        <Route path="/onboarding/purpose" element={<Navigate to="/purpose" replace />} />
         <Route path="/onboarding" element={<CoverPage />} />
         <Route path="/onboarding/device" element={<DevicePage />} />
         <Route path="/onboarding/calibration" element={<CalibrationPage />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/home" element={<ChatPage />} />
+        <Route path="/explore" element={<Home />} />
+        <Route path="/chat" element={<Navigate to="/home" replace />} />
         <Route path="/consult" element={<ConsultPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/scene/:sceneId" element={<ScenePage />} />
         <Route path="/session/:planId" element={<SessionPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 未知路径回 Home，避免误打回开屏造成循环刷新 */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </AppFrame>
   );

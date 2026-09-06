@@ -3,7 +3,7 @@
  *
  * 文件约定见 config/llm-apis.md。
  * 优先级: 环境变量 > llm-apis.local.md > llm-apis.md。
- * 密钥文件不进 git。
+ * 奇绩 Key 可写在可提交的 llm-apis.md（产品分发授权）；其它厂商密钥仍放 local / env。
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -25,7 +25,7 @@ export interface LlmEndpoint {
 }
 
 export interface LlmApiRegistry {
-  defaultProvider: "kimi" | "qwen" | "minimax" | "rule";
+  defaultProvider: "qiji" | "kimi" | "qwen" | "minimax" | "rule";
   endpoints: Record<string, LlmEndpoint>;
 }
 
@@ -109,7 +109,7 @@ export function loadLlmApiRegistry(root = repoRoot()): LlmApiRegistry {
 
   const defaultRaw = (blocks.default?.provider ?? "rule").toLowerCase();
   const defaultProvider = (
-    ["kimi", "qwen", "minimax", "rule"].includes(defaultRaw) ? defaultRaw : "rule"
+    ["qiji", "kimi", "qwen", "minimax", "rule"].includes(defaultRaw) ? defaultRaw : "rule"
   ) as LlmApiRegistry["defaultProvider"];
 
   const endpoints: Record<string, LlmEndpoint> = {};

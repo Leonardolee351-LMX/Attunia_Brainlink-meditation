@@ -2,32 +2,39 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { ONBOARD_BLEED } from "@/lib/onboarding-layout";
 
-const HOLD_MS = 2800;
+const HOLD_MS = 3200;
 
 /**
- * Attunia 开屏：全幅封面顶满机框；Ken Burns + 文案错落入场后进入体验。
+ * Attunia 开屏 → /purpose（四页说明书）→ /onboarding（设备认识你）→ 校准。
+ * 无点击按钮，停留后自动进入说明书。
+ * 背景用视频 attunia-splash.mp4；原图 attunia-splash.png 仍保留作 poster / 日后复用。
  */
 export default function SplashPage() {
   const navigate = useNavigate();
   const gone = useRef(false);
 
-  const enter = () => {
-    if (gone.current) return;
-    gone.current = true;
-    navigate("/onboarding", { replace: true });
-  };
-
   useEffect(() => {
+    const enter = () => {
+      if (gone.current) return;
+      gone.current = true;
+      navigate("/purpose");
+    };
     const t = window.setTimeout(enter, HOLD_MS);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [navigate]);
 
   return (
-    <button type="button" onClick={enter} className={`${ONBOARD_BLEED} bg-[#0c0c0e] text-left outline-none`} aria-label="进入 Attunia 体验">
-      <img
-        src="/brand/attunia-splash.png"
-        alt=""
+    <div className={`${ONBOARD_BLEED} bg-[#0c0c0e]`}>
+      <video
         className="nf-splash-kenburns pointer-events-none absolute inset-0 h-full w-full origin-center object-cover will-change-transform"
+        src="/brand/attunia-splash.mp4"
+        poster="/brand/attunia-splash.png"
+        autoPlay
+        muted
+        playsInline
+        loop
+        preload="auto"
+        aria-hidden
       />
       <div
         className="pointer-events-none absolute inset-0"
@@ -66,14 +73,7 @@ export default function SplashPage() {
         >
           让冥想疗法和人的大脑进行调律。
         </p>
-        <span
-          className="nf-splash-rise mt-8 inline-flex h-8 w-8 items-center justify-center"
-          style={{ animationDelay: "0.78s" }}
-          aria-hidden
-        >
-          <span className="nf-splash-dot h-1.5 w-1.5 rounded-full bg-[#B8F2C9]" />
-        </span>
       </div>
-    </button>
+    </div>
   );
 }

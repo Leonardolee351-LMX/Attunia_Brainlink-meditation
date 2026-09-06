@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 export const trpc = createTRPCReact<AppRouter>();
 
 const queryClient = new QueryClient();
-const trpcClient = trpc.createClient({
+export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
       url: "/api/trpc",

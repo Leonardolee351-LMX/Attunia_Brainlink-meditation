@@ -204,7 +204,11 @@ export async function scanEegDevices(): Promise<{
 
 export async function startSerialLive(port?: string): Promise<{ name: string; port: string }> {
   const requested = (port || "COM23").toUpperCase();
-  const order = [requested, ...["COM23", "COM22"].filter((p) => p !== requested)];
+  const order = [
+    requested,
+    ...["COM23", "COM22"].filter((p) => p !== requested),
+    "auto",
+  ];
   const peek = async () => {
     const res = await fetch(`${serialBridgeBase()}/latest`);
     return (await res.json()) as {
@@ -231,7 +235,12 @@ export async function startSerialLive(port?: string): Promise<{ name: string; po
     if (j.metric) emit(metricToBio(j.metric));
   };
 
-  const attach = (j: { port: string; baud?: number; raw_tail?: number[]; metric?: { attention?: number | null; meditation?: number | null; signal?: number | null; at?: number } }) => {
+  const attach = (j: {
+    port: string;
+    baud?: number;
+    raw_tail?: number[];
+    metric?: { attention?: number | null; meditation?: number | null; signal?: number | null; at?: number };
+  }) => {
     source = "serial";
     deviceName = `BrainLink Lite · ${j.port} @${j.baud ?? 57600}`;
     ingest(j);
@@ -253,8 +262,18 @@ export async function startSerialLive(port?: string): Promise<{ name: string; po
     return { name: deviceName, port: already.port };
   }
 
+  // 桥若卡在 switching port（COM23/COM22 互顶），先用 auto 解开
+  if (already?.error === "switching port") {
+    await fetch(`${serialBridgeBase()}/api/open`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ port: "auto", baud: 57600 }),
+    }).catch(() => null);
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
   stopSerialPoll();
-  let lastErr = "没有读到 ThinkGear 数据";
+  let lastErr = "没有读到 ThinkGear 数据。请确认头环已开机并配对，本机桥默认 COM23。";
   for (const target of order) {
     await fetch(`${serialBridgeBase()}/api/open`, {
       method: "POST",
@@ -263,19 +282,33 @@ export async function startSerialLive(port?: string): Promise<{ name: string; po
     }).catch(() => null);
 
     let baseBytes: number | null = null;
-    for (let i = 0; i < 40; i++) {
-      const j = await peek();
-      if (j.ok && j.port && j.port.toUpperCase() === target) {
+    for (let i = 0; i < 50; i++) {
+      const j = await peek().catch(() => null);
+      if (!j) {
+        await new Promise((r) => setTimeout(r, 200));
+        continue;
+      }
+      const livePort = (j.port || "").toUpperCase();
+      const want = target.toUpperCase();
+      const portMatch = want === "AUTO" || livePort === want;
+      const streaming = (j.bytes_delta ?? 0) > 0 || (baseBytes != null && (j.bytes ?? 0) > baseBytes);
+
+      if (j.ok && livePort && (portMatch || streaming)) {
         attach(j as { port: string; baud?: number; raw_tail?: number[]; metric?: typeof j.metric });
         if (baseBytes == null) baseBytes = j.bytes ?? 0;
-        if ((j.bytes_delta ?? 0) > 0 || (j.bytes ?? 0) > baseBytes) {
-          return { name: deviceName, port: j.port };
-        }
+        if (streaming) return { name: deviceName, port: j.port! };
       }
-      lastErr = j.error || lastErr;
+      if (j.error && j.error !== "switching port") lastErr = j.error;
       await new Promise((r) => setTimeout(r, 200));
     }
   }
+
+  // 最后再试一次 auto，避免请求口把桥锁死在 switching
+  await fetch(`${serialBridgeBase()}/api/open`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ port: "auto", baud: 57600 }),
+  }).catch(() => null);
   throw new Error(lastErr);
 }
 
@@ -337,6 +370,40 @@ export function startDemoLive(name = "演示信号"): void {
     signal: 0,
     at: Date.now(),
   });
+}
+
+/**
+ * 演示态手动调三通道。真机连接时拒绝写入。
+ * 改 focus/calm 时按 live 公式重算 arousal；也可单独覆写 arousal。
+ */
+export function setDemoBio(patch: {
+  focus?: number;
+  calm?: number;
+  arousal?: number;
+}): boolean {
+  if (source === "serial" || source === "ble" || source === "webserial") return false;
+  if (source !== "demo") startDemoLive();
+  const focus = Math.round(patch.focus ?? last?.focus ?? 55);
+  const calm = Math.round(patch.calm ?? last?.calm ?? 50);
+  const arousal =
+    patch.arousal != null
+      ? Math.round(patch.arousal)
+      : Math.max(8, Math.min(97, Math.round(100 - calm * 0.85)));
+  emit({
+    arousal: Math.max(0, Math.min(100, arousal)),
+    focus: Math.max(0, Math.min(100, focus)),
+    calm: Math.max(0, Math.min(100, calm)),
+    attention: Math.max(0, Math.min(100, focus)),
+    meditation: Math.max(0, Math.min(100, calm)),
+    signal: 0,
+    at: Date.now(),
+  });
+  return true;
+}
+
+/** 是否可用演示滑条（未接真机） */
+export function canAdjustDemoBio(): boolean {
+  return source !== "serial" && source !== "ble" && source !== "webserial";
 }
 
 export function pickDefaultDevice(devices: ScannedDevice[], preferredPorts: string[]): ScannedDevice | null {

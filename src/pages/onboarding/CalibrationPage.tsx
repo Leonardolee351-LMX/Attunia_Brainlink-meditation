@@ -13,6 +13,8 @@ import {
 import { FocusDetectVisual, MeditateDetectVisual } from "@/components/DetectVisual";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
+import type { WorkSceneId } from "@/lib/scenes";
+import { useSceneBgm } from "@/lib/use-scene-bgm";
 
 /**
  * 首次校准:1 分钟建立新用户的脑电波日常基线(真实产品为 5 分钟,演示用 1 分钟)。
@@ -20,9 +22,19 @@ import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
  *  30s  读取默认状态 —— 基本校准与归一化
  *  15s  校准专注状态 —— 盯住小球,记录专注数值
  *  15s  监测冥想状态 —— 全身松弛、微睡意,记录冥想数值
+ *
+ * 阶段 BGM（复用六景入库轨，见 scene-audio / SCENE-BGM-INGEST）：
+ *  平常 → post-meet 软光回落 · 专注 → clock-in 开工 · 冥想 → clock-out 下工
  */
 
 type PhaseKey = "baseline" | "focus" | "meditate";
+
+/** 平常 / 专注 / 冥想 → 已入库场景床轨 */
+const PHASE_BGM: Record<PhaseKey, WorkSceneId> = {
+  baseline: "post-meet",
+  focus: "clock-in",
+  meditate: "clock-out",
+};
 
 const PHASES: {
   key: PhaseKey;
@@ -98,6 +110,9 @@ function WaveCanvas({
     const ctx = canvas.getContext("2d")!;
     let raf = 0;
     let t = 0;
+    let last = performance.now();
+    const smooth = { arousal: bioRef.current.arousal, focus: bioRef.current.focus, calm: bioRef.current.calm };
+    const TAU = 0.28;
     const resize = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cssW = canvas.clientWidth || 330;
@@ -107,11 +122,17 @@ function WaveCanvas({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
-    const draw = () => {
+    const draw = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      t += dt * 1.05;
+      const bio = bioRef.current;
+      for (const k of ["arousal", "focus", "calm"] as const) {
+        smooth[k] += (bio[k] - smooth[k]) * (1 - Math.exp(-dt / TAU));
+      }
       const w = canvas.clientWidth || 330;
       const h = canvas.clientHeight || 196;
       ctx.clearRect(0, 0, w, h);
-      const bio = bioRef.current;
       const raw = rawRef.current;
       const rawMin = raw.length ? Math.min(...raw) : 0;
       const rawMax = raw.length ? Math.max(...raw) : 1;
@@ -126,7 +147,8 @@ function WaveCanvas({
         ctx.lineTo(w, mid);
         ctx.stroke();
 
-        const amp = 8 + (bio[ch.key] / 100) * 26;
+        const level = smooth[ch.key];
+        const amp = 8 + (level / 100) * 26;
         ctx.beginPath();
         ctx.strokeStyle = ch.color;
         ctx.globalAlpha = 0.92;
@@ -140,13 +162,12 @@ function WaveCanvas({
             mid +
             Math.sin(x * 0.018 * ch.freq + t * (1.15 + ch.freq) + li * 2.05) * amp +
             Math.sin(x * 0.05 * ch.freq + t * 2.15 + li) * amp * 0.32 +
-            rawN * (10 + bio[ch.key] * 0.08);
+            rawN * (10 + level * 0.08);
           x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         }
         ctx.stroke();
       });
       ctx.globalAlpha = 1;
-      t += 0.032;
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -224,6 +245,7 @@ export default function CalibrationPage() {
   const [contact, setContact] = useState<number | null>(null);
 
   const bioRef = useRef({ arousal: 60, focus: 52, calm: 48 });
+  const displayBioRef = useRef({ arousal: 60, focus: 52, calm: 48 });
   const hardwareRef = useRef(isLiveHardware());
   const liveRef = useRef<LiveBio | null>(null);
   const rawRef = useRef<number[]>([]);
@@ -238,6 +260,8 @@ export default function CalibrationPage() {
   const phaseIdx = bounds.findIndex((b) => elapsed < b);
   const phase = phaseIdx === -1 ? null : PHASES[phaseIdx];
   const phaseLeft = phase ? Math.ceil(bounds[phaseIdx] - elapsed) : 0;
+  const bgmScene = phase ? PHASE_BGM[phase.key] : PHASE_BGM.baseline;
+  useSceneBgm(bgmScene, !done && phase != null);
 
   useEffect(() => {
     resumeLiveSession();
@@ -249,8 +273,10 @@ export default function CalibrationPage() {
     if (snap.last) {
       liveRef.current = snap.last;
       if (hw) {
-        bioRef.current = { arousal: snap.last.arousal, focus: snap.last.focus, calm: snap.last.calm };
-        setLive({ arousal: snap.last.arousal, focus: snap.last.focus, calm: snap.last.calm });
+        const next = { arousal: snap.last.arousal, focus: snap.last.focus, calm: snap.last.calm };
+        bioRef.current = next;
+        displayBioRef.current = { ...next };
+        setLive(next);
         setContact(snap.last.signal);
       }
     }
@@ -263,7 +289,6 @@ export default function CalibrationPage() {
       if (on) {
         const next = { arousal: b.arousal, focus: b.focus, calm: b.calm };
         bioRef.current = next;
-        setLive(next);
       }
     });
     const offRaw = subscribeRaw((raw) => {
@@ -274,6 +299,32 @@ export default function CalibrationPage() {
       offRaw();
     };
   }, []);
+
+  // 显示层 EMA：把 10Hz 采样 / 真机抖动收成平滑条与视觉输入（~20fps 写回 React）
+  useEffect(() => {
+    if (done) return;
+    let raf = 0;
+    let last = performance.now();
+    let lastPublish = 0;
+    const TAU = 0.3;
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const a = 1 - Math.exp(-dt / TAU);
+      const src = bioRef.current;
+      const d = displayBioRef.current;
+      d.arousal += (src.arousal - d.arousal) * a;
+      d.focus += (src.focus - d.focus) * a;
+      d.calm += (src.calm - d.calm) * a;
+      if (now - lastPublish >= 50) {
+        lastPublish = now;
+        setLive({ arousal: d.arousal, focus: d.focus, calm: d.calm });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [done]);
 
   // 主时钟:0.1s 步进；真机用实时样本，否则向阶段目标收敛
   useEffect(() => {
@@ -297,15 +348,13 @@ export default function CalibrationPage() {
         } else {
           const target = BIO_TARGET[key];
           for (const k of ["arousal", "focus", "calm"] as const) {
-            bio[k] += (target[k] - bio[k]) * 0.035 + (Math.random() - 0.5) * 1.6;
+            bio[k] += (target[k] - bio[k]) * 0.028 + (Math.random() - 0.5) * 0.35;
             bio[k] = Math.max(8, Math.min(97, bio[k]));
           }
         }
-        // 记录当前阶段采样(供基线计算)
         phaseSamplesRef.current[key === "baseline" ? "arousal" : key === "focus" ? "focus" : "calm"].push(
           bio[key === "baseline" ? "arousal" : key === "focus" ? "focus" : "calm"],
         );
-        setLive({ ...bio });
         return next;
       });
     }, 100);
@@ -331,6 +380,13 @@ export default function CalibrationPage() {
     saveBaseline({ arousal: 62, focus: 55, calm: 50, calibratedAt: new Date().toISOString() });
     markOnboarded();
     navigate("/home");
+  };
+
+  const recalibrate = () => {
+    phaseSamplesRef.current = { arousal: [], focus: [], calm: [] };
+    setBaseline(null);
+    setElapsed(0);
+    setDone(false);
   };
 
   // ── 完成页 ──
@@ -364,16 +420,27 @@ export default function CalibrationPage() {
             ))}
           </div>
 
-          <button
-            onClick={() => navigate("/home")}
-            className="nf-btn-primary nf-fade-slow relative mt-4 flex w-full shrink-0 items-center justify-between !py-2 !pr-2 !pl-6"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <span>进入首页,开始第 1 天</span>
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white">
-              <IconArrow direction="right" />
-            </span>
-          </button>
+          <div className="relative mt-4 flex w-full shrink-0 flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate("/home")}
+              className="nf-btn-primary nf-fade-slow flex w-full items-center justify-between !py-2 !pr-2 !pl-6"
+              style={{ animationDelay: "0.4s" }}
+            >
+              <span>进入首页,开始第 1 天</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white">
+                <IconArrow direction="right" />
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={recalibrate}
+              className="nf-fade-slow min-h-11 w-full rounded-full text-[13px] font-semibold text-ink/50 transition hover:bg-white/70 hover:text-ink"
+              style={{ animationDelay: "0.5s" }}
+            >
+              重新校准
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -402,7 +469,7 @@ export default function CalibrationPage() {
               return (
                 <div key={p.key} className={`h-1 flex-1 overflow-hidden rounded-full ${dark ? "bg-cream/15" : "bg-ink/10"}`}>
                   <div
-                    className={`h-full rounded-full transition-all duration-150 ${dark ? "bg-cream" : "bg-ink"}`}
+                    className={`h-full rounded-full transition-[width] duration-300 ease-out ${dark ? "bg-cream" : "bg-ink"}`}
                     style={{ width: `${fill * 100}%` }}
                   />
                 </div>
@@ -463,7 +530,7 @@ export default function CalibrationPage() {
                 )}
                 <div className={`h-1.5 flex-1 overflow-hidden rounded-full ${dark ? "bg-cream/15" : "bg-ink/10"}`}>
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-full transition-[width] duration-500 ease-out"
                     style={{
                       width: `${v}%`,
                       background: color,

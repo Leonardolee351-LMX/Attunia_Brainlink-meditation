@@ -69,7 +69,7 @@ export default function ScenePage() {
   const resolved = resolveWorkSceneId(sceneId);
 
   if (!resolved) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/explore" replace />;
   }
 
   if (sceneId && !isWorkSceneId(sceneId) && resolved) {
@@ -117,9 +117,9 @@ export default function ScenePage() {
 
           <div className={`absolute inset-x-0 top-0 z-10 px-4 ${PHONE_SAFE_TOP}`}>
             <Link
-              to="/home"
+              to="/explore"
               className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-ink shadow-[0_8px_24px_-14px_rgba(17,17,17,0.45)]"
-              aria-label="返回首页"
+              aria-label="返回探索"
             >
               <IconArrow direction="left" />
             </Link>

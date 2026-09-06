@@ -1,6 +1,6 @@
 {
   "name": "NeuroFlow-AgentLab",
-  "version": 0,
+  "version": 1,
   "last_backup_at_version": 0,
-  "note": "Lead bumps version after an accepted deliverable slice. Backup at multiples of 3."
+  "note": "Lead bumps version after an accepted deliverable slice. Backup at multiples of 3. 2026-09-05 accepted T-1 + TTS B-4/B-6 + B-3 + F-11."
 }

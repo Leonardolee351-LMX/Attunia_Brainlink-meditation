@@ -3,17 +3,19 @@ import { useLocation, useNavigate } from "react-router";
 import StatePanel from "@/components/StatePanel";
 import LLMSettings, { useLLMConfig } from "@/components/LLMSettings";
 import { trpc } from "@/providers/trpc";
-import type { ConsultResult, UserState } from "@contracts/agents";
+import type { AgentMessage, ConsultResult, IntentAnalysis, UserState } from "@contracts/agents";
 import { iconForExpert } from "@/lib/expert-icons";
 import { loadBaseline } from "@/lib/baseline";
 import { getLiveSnapshot, isLiveHardware } from "@/lib/live-device";
-import { loadMemory, recordConsult } from "@/lib/memory";
+import { applyServerMemory, loadMemory, recordConsult } from "@/lib/memory";
+import { streamConsult } from "@/lib/consult-stream";
 import { summarizeMemory } from "@contracts/agents";
 import type { HomeIntentState } from "@/lib/intent-route";
-import { clipSpeakText, speakGuidance, stopGuidance } from "@/lib/tts";
+import { stopGuidance } from "@/lib/tts";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { PHONE_BLEED, PHONE_SAFE_TOP } from "@/lib/onboarding-layout";
 import { TUNO_FRIENDS, TUNO_ROSTER } from "@/lib/tuno-friends";
+import AgentThinkingRail from "@/components/AgentThinkingRail";
 
 /** 默认状态:有校准基线时用基线,否则用演示值 */
 function defaultState(): UserState {
@@ -55,8 +57,44 @@ function SettingsGearIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** Friends 阵容：不同底色 + 头像；放在输入与定制按钮下方 */
+/** Friends 阵容：横排 + 桌面端 6 个图标跳转 + 第 7 张「创建 Agent」占位 */
 function FriendsRoster({ compact = false }: { compact?: boolean }) {
+  const scrollerRef = useRef<HTMLUListElement>(null);
+  const cardRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  const [activeId, setActiveId] = useState(TUNO_ROSTER[0]?.id ?? "tuno");
+
+  const scrollToFriend = (id: string) => {
+    const scroller = scrollerRef.current;
+    const card = cardRefs.current[id];
+    if (!scroller || !card) return;
+    setActiveId(id);
+    const left = card.offsetLeft - scroller.clientWidth / 2 + card.clientWidth / 2;
+    scroller.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const onScroll = () => {
+      const mid = scroller.scrollLeft + scroller.clientWidth / 2;
+      let best = TUNO_ROSTER[0]?.id ?? "tuno";
+      let bestDist = Infinity;
+      for (const f of TUNO_ROSTER) {
+        const el = cardRefs.current[f.id];
+        if (!el) continue;
+        const center = el.offsetLeft + el.clientWidth / 2;
+        const d = Math.abs(center - mid);
+        if (d < bestDist) {
+          bestDist = d;
+          best = f.id;
+        }
+      }
+      setActiveId(best);
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", onScroll);
+  }, []);
+
   if (compact) {
     return (
       <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5" aria-label="Tuno 与专家阵容">
@@ -64,7 +102,7 @@ function FriendsRoster({ compact = false }: { compact?: boolean }) {
           <span
             key={f.id}
             title={`${f.name} · ${f.role}`}
-            className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-ink/10"
+            className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[12px] ring-1 ring-ink/10"
             style={{ background: f.bg }}
           >
             <img src={f.avatar} alt="" className="h-full w-full object-cover" />
@@ -81,42 +119,118 @@ function FriendsRoster({ compact = false }: { compact?: boolean }) {
         <h2 className="text-[12px] font-semibold tracking-wide text-ink/55 uppercase">The Friends</h2>
         <span className="text-[11px] text-ink/35">按擅长上场 · 只拼目录</span>
       </div>
-      <ul className="mt-3 grid grid-cols-2 gap-2.5">
+      <ul
+        ref={scrollerRef}
+        className="-mx-5 mt-3 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {TUNO_ROSTER.map((f) => (
           <li
             key={f.id}
-            className={`overflow-hidden rounded-[22px] ${f.host ? "col-span-2" : ""}`}
+            ref={(el) => {
+              cardRefs.current[f.id] = el;
+            }}
+            data-friend-id={f.id}
+            className="w-[132px] shrink-0 overflow-hidden rounded-[22px]"
             style={{ background: f.bg }}
           >
-            <div className={`flex items-center gap-3 p-3 ${f.host ? "sm:p-3.5" : ""}`}>
-              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white/40 shadow-[0_8px_20px_-12px_rgba(17,17,17,0.35)] ring-2 ring-white/70">
+            <div className="flex flex-col p-2.5">
+              <span className="relative aspect-square w-full overflow-hidden rounded-[16px] shadow-[0_8px_20px_-12px_rgba(17,17,17,0.22)] ring-1 ring-white/50">
                 <img src={f.avatar} alt="" className="h-full w-full object-cover" />
               </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-baseline gap-x-2">
-                  <span
-                    className={`font-display text-[15px] font-bold ${f.host ? "text-white" : "text-ink"}`}
-                  >
-                    {f.name}
+              <div className="mt-2 min-w-0 px-0.5">
+                <p className="font-display truncate text-[13px] font-bold text-ink">
+                  <span className="mr-0.5 opacity-70" aria-hidden>
+                    {f.icon}
                   </span>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                    style={{
-                      background: f.host ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.55)",
-                      color: f.host ? "rgba(255,255,255,0.75)" : f.accent,
-                    }}
-                  >
-                    {f.role}
-                  </span>
-                </div>
-                <p className={`mt-0.5 text-[12px] leading-relaxed ${f.host ? "text-white/60" : "text-ink/55"}`}>
-                  {f.blurb}
+                  {f.name}
                 </p>
+                <p className="mt-0.5 truncate text-[10px] font-medium" style={{ color: f.accent }}>
+                  {f.role}
+                </p>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-ink/50">{f.blurb}</p>
               </div>
             </div>
           </li>
         ))}
+
+        {/* 第 7 张：创建自己的 Agent（占位） */}
+        <li
+          className="w-[132px] shrink-0 overflow-hidden rounded-[22px] bg-[#F0F1F4] ring-1 ring-dashed ring-ink/15"
+          aria-label="创建自己的 Agent，功能开发中"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              /* 占位：以后开票做创建 Agent */
+            }}
+            className="flex h-full w-full flex-col items-stretch p-2.5 text-left"
+          >
+            <span className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] bg-white/70 ring-1 ring-ink/8">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-ink/25 text-2xl font-light text-ink/35">
+                +
+              </span>
+            </span>
+            <div className="mt-2 min-w-0 px-0.5">
+              <p className="font-display text-[13px] font-bold text-ink/70">Create</p>
+              <p className="mt-0.5 text-[10px] font-medium text-ink/40">自建 Agent</p>
+              <p className="mt-1 text-[11px] leading-snug text-ink/35">功能开发中</p>
+            </div>
+          </button>
+        </li>
       </ul>
+
+      {/* 桌面端：六个可点 icon，跳到对应卡片 */}
+      <div className="mt-3 hidden justify-center gap-2 sm:flex" role="tablist" aria-label="跳转到 Agent">
+        {TUNO_ROSTER.map((f) => {
+          const on = activeId === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              title={f.name}
+              aria-label={`查看 ${f.name}`}
+              onClick={() => scrollToFriend(f.id)}
+              className={`flex h-9 w-9 items-center justify-center rounded-full text-[13px] transition ${
+                on
+                  ? "bg-ink text-white shadow-[0_8px_18px_-10px_rgba(17,17,17,0.45)]"
+                  : "bg-white text-ink/55 ring-1 ring-ink/8 hover:bg-mint"
+              }`}
+            >
+              {f.icon}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          title="Create · 功能开发中"
+          aria-label="创建自己的 Agent，功能开发中"
+          onClick={() => {
+            const scroller = scrollerRef.current;
+            if (!scroller) return;
+            scroller.scrollTo({ left: scroller.scrollWidth, behavior: "smooth" });
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg font-light text-ink/35 ring-1 ring-dashed ring-ink/15 hover:bg-cream"
+        >
+          +
+        </button>
+      </div>
+
+      {/* 窄屏：六个小点指示 */}
+      <div className="mt-2.5 flex justify-center gap-1.5 sm:hidden" aria-hidden>
+        {TUNO_ROSTER.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => scrollToFriend(f.id)}
+            className={`h-1.5 rounded-full transition-all ${
+              activeId === f.id ? "w-4 bg-ink" : "w-1.5 bg-ink/20"
+            }`}
+            aria-label={f.name}
+          />
+        ))}
+      </div>
     </section>
   );
 }
@@ -275,21 +389,37 @@ function TranscriptBubble({
           </span>
           {m.to === "user" ? "你" : m.to === "broadcast" ? "全体" : m.to.replace("expert_", "")}
         </div>
-        <button
-          type="button"
-          onClick={onReplay}
-          className={`rounded-2xl px-4 py-3 text-left text-xs leading-relaxed ${
-            isDecision
-              ? "bg-ink text-white"
-              : isChallenge
-                ? "bg-[#faf0e8] text-clay"
-                : isTuno
-                  ? "bg-ink text-white"
-                  : "bg-white text-ink/75 shadow-[0_8px_24px_-16px_rgba(17,17,17,0.35)]"
-          }`}
-        >
-          {m.content}
-        </button>
+        {onReplay ? (
+          <button
+            type="button"
+            onClick={onReplay}
+            className={`rounded-2xl px-4 py-3 text-left text-xs leading-relaxed ${
+              isDecision
+                ? "bg-ink text-white"
+                : isChallenge
+                  ? "bg-[#faf0e8] text-clay"
+                  : isTuno
+                    ? "bg-ink text-white"
+                    : "bg-white text-ink/75 shadow-[0_8px_24px_-16px_rgba(17,17,17,0.35)]"
+            }`}
+          >
+            {m.content}
+          </button>
+        ) : (
+          <div
+            className={`rounded-2xl px-4 py-3 text-left text-xs leading-relaxed ${
+              isDecision
+                ? "bg-ink text-white"
+                : isChallenge
+                  ? "bg-[#faf0e8] text-clay"
+                  : isTuno
+                    ? "bg-ink text-white"
+                    : "bg-white text-ink/75 shadow-[0_8px_24px_-16px_rgba(17,17,17,0.35)]"
+            }`}
+          >
+            {m.content}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -297,71 +427,136 @@ function TranscriptBubble({
 
 export default function ConsultPage() {
   const presets = trpc.agent.presets.useQuery();
-  const consult = trpc.agent.consult.useMutation();
   const location = useLocation();
   const navigate = useNavigate();
   const prefill = (location.state ?? {}) as { prefillMessage?: string; userState?: UserState };
   const [message, setMessage] = useState(prefill.prefillMessage ?? "");
   const [state, setState] = useState<UserState>(prefill.userState ?? defaultState());
-  const [result, setResult] = useState<ConsultResult | null>(null);
-  const [visibleCount, setVisibleCount] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  /** compose 输入 · live SSE 渐进呈现（分析 / 气泡 / 结果边到边出） */
+  const [view, setView] = useState<"compose" | "live">("compose");
+  const [liveMessages, setLiveMessages] = useState<AgentMessage[]>([]);
+  const [liveAnalysis, setLiveAnalysis] = useState<IntentAnalysis | null>(null);
+  const [liveLabel, setLiveLabel] = useState<string | null>(null);
+  const [result, setResult] = useState<ConsultResult | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [streaming, setStreaming] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
-  const resultTopRef = useRef<HTMLDivElement>(null);
   const decisionRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const llmConfig = useLLMConfig();
 
   useEffect(() => {
-    if (!result) return;
-    setVisibleCount(0);
-    const timer = setInterval(() => {
-      setVisibleCount((c) => {
-        if (c >= result.transcript.length) {
-          clearInterval(timer);
-          return c;
-        }
-        return c + 1;
-      });
-    }, 420);
-    return () => clearInterval(timer);
-  }, [result]);
+    if (view !== "live" || liveMessages.length === 0) return;
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [liveMessages.length, view]);
 
   useEffect(() => {
-    if (!result || visibleCount <= 0) return;
-    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [visibleCount, result]);
+    if (!result || view !== "live") return;
+    window.setTimeout(() => {
+      decisionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 200);
+  }, [result, view]);
 
-  useEffect(() => () => stopGuidance(), []);
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      stopGuidance();
+    },
+    [],
+  );
+
+  const resetLive = () => {
+    setLiveMessages([]);
+    setLiveAnalysis(null);
+    setLiveLabel(null);
+    setResult(null);
+    setStreamError(null);
+  };
+
+  const backToCompose = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setStreaming(false);
+    resetLive();
+    setView("compose");
+  };
 
   const run = (override?: string) => {
     const text = (override ?? message).trim();
     if (!text) return;
-    setResult(null);
-    window.setTimeout(() => {
-      resultTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
-    consult.mutate(
-      {
-        message: text,
-        state,
-        llm: llmConfig,
-        memory: loadMemory(),
-      },
-      {
-        onSuccess: (res) => {
+
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
+    resetLive();
+    setLiveLabel("正在连接会诊…");
+    setStreaming(true);
+    setView("live");
+
+    void (async () => {
+      try {
+        const res = await streamConsult(
+          {
+            message: text,
+            state,
+            llm: llmConfig,
+            memory: loadMemory(),
+          },
+          {
+            signal: ac.signal,
+            onEvent: (ev) => {
+              if (ac.signal.aborted) return;
+              if (ev.type === "phase") {
+                setLiveLabel(ev.label?.trim() || null);
+              } else if (ev.type === "message" && ev.message) {
+                setLiveMessages((prev) => [...prev, ev.message!]);
+              } else if (ev.type === "analysis" && ev.analysis) {
+                setLiveAnalysis(ev.analysis);
+              } else if (ev.type === "result" && ev.result) {
+                setResult(ev.result);
+                setLiveAnalysis((prev) => prev ?? ev.result!.analysis);
+                setLiveMessages((prev) => (prev.length > 0 ? prev : ev.result!.transcript));
+                setLiveLabel(null);
+              } else if (ev.type === "error") {
+                setStreamError(ev.error?.trim() || "会诊出错了");
+                setLiveLabel(null);
+              }
+            },
+          },
+        );
+
+        if (ac.signal.aborted) return;
+
+        if (res) {
+          applyServerMemory(res.memory);
           setResult(res);
+          setLiveAnalysis((prev) => prev ?? res.analysis);
+          setLiveMessages((prev) => (prev.length > 0 ? prev : res.transcript));
+          setLiveLabel(null);
           recordConsult({
             at: new Date().toISOString(),
             goalId: res.goalId,
             planId: res.decision.planId,
             planName: res.decision.planName,
           });
-          window.setTimeout(() => {
-            resultTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }, 60);
-        },
-      },
-    );
+        } else if (!ac.signal.aborted) {
+          setStreamError((prev) => prev ?? "会诊未返回完整结果，请重试");
+          setLiveLabel(null);
+        }
+      } catch (err) {
+        if (ac.signal.aborted) return;
+        const msg = err instanceof Error ? err.message : "会诊请求出错了";
+        setStreamError(msg);
+        setLiveLabel(null);
+      } finally {
+        if (abortRef.current === ac) {
+          setStreaming(false);
+          abortRef.current = null;
+        }
+      }
+    })();
   };
 
   useEffect(() => {
@@ -376,18 +571,12 @@ export default function ConsultPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const transcriptDone = result ? visibleCount >= result.transcript.length : false;
-
-  useEffect(() => {
-    if (!transcriptDone) return;
-    window.setTimeout(() => {
-      decisionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }, 200);
-  }, [transcriptDone]);
-
   const inventedWinner = result?.proposals.find(
     (p) => p.planId === "invented" && p.invented && result.decision.planId === "invented",
   )?.invented;
+
+  const analysis = liveAnalysis ?? result?.analysis ?? null;
+  const streamPending = streaming && !result && !streamError;
 
   if (settingsOpen) {
     return (
@@ -399,114 +588,88 @@ export default function ConsultPage() {
     );
   }
 
-  return (
-    <div className={`${PHONE_BLEED} bg-cream`}>
-      <div className={`relative z-10 flex min-h-0 flex-1 flex-col ${PHONE_SAFE_TOP}`}>
-        <header className="flex shrink-0 items-start justify-between gap-3 px-5 pb-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-medium text-ink/45">Multi-Agent</p>
-            <h1 className="font-display mt-0.5 text-[1.7rem] leading-[1.12] font-extrabold text-ink">
-              Tuno &amp; Friends
-            </h1>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink/40 transition hover:bg-white hover:text-ink/65"
-            aria-label="会诊设置"
-            title="设置"
-          >
-            <SettingsGearIcon className="h-[18px] w-[18px]" />
-          </button>
-        </header>
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5">
-          <p className="max-w-[40ch] text-[14px] leading-relaxed text-ink/50">
-            直接说出你想定制的练法——想缓解什么、练什么、有多少时间。Tuno
-            会叫上擅长的 Friends，从疗法目录里拼出一套属于你的冥想方案。
-          </p>
-
-          <section className="mt-4">
-            <label htmlFor="consult-intent" className="font-display text-[1.2rem] font-extrabold text-ink">
-              说说你想怎么练
-            </label>
-            <textarea
-              id="consult-intent"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run();
-              }}
-              rows={4}
-              placeholder="例如：开完会还很紧，想先落地 5 分钟，再给专注热身；今晚想睡前下行，别太久……"
-              className="mt-3 w-full resize-none rounded-[24px] bg-white px-4 py-3.5 text-[15px] leading-relaxed text-ink shadow-[0_12px_36px_-20px_rgba(17,17,17,0.28)] placeholder:text-ink/30 focus:outline-none focus:ring-2 focus:ring-ink/12"
-            />
+  /* —— 全屏：SSE 渐进 live —— */
+  if (view === "live") {
+    return (
+      <div className={`${PHONE_BLEED} bg-cream`}>
+        <div className={`relative z-10 flex min-h-0 flex-1 flex-col ${PHONE_SAFE_TOP}`}>
+          <header className="flex shrink-0 items-center gap-2 px-5 pb-3">
             <button
               type="button"
-              onClick={() => run()}
-              disabled={consult.isPending || !message.trim()}
-              className="nf-btn-primary mt-3 w-full !py-4"
+              onClick={backToCompose}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-[0_8px_20px_-12px_rgba(17,17,17,0.28)] ring-1 ring-ink/5"
+              aria-label="返回"
             >
-              {consult.isPending ? (
-                "Tuno 正在叫 Friends…"
-              ) : (
-                <span className="inline-flex items-center justify-center gap-2">
-                  让 Tuno &amp; Friends 定制
-                  <IconArrow direction="right" className="h-4 w-4" />
-                </span>
-              )}
+              <IconArrow direction="left" className="h-[18px] w-[18px]" />
             </button>
-            <p className="mt-2 text-center text-[11px] text-ink/30">⌘/Ctrl + Enter 也可发起</p>
-          </section>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium text-ink/40">Tuno &amp; Friends</p>
+              <h1 className="font-display text-[1.25rem] font-extrabold text-ink">
+                {result ? "定制方案" : "会诊进行中"}
+              </h1>
+            </div>
+          </header>
 
-          <div className="mt-5">
-            <FriendsRoster />
-          </div>
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-6">
+            <p className="rounded-[20px] bg-white px-4 py-3 text-[14px] leading-relaxed text-ink/70 shadow-[0_10px_28px_-18px_rgba(17,17,17,0.2)]">
+              {message.trim() || "（未填写诉求）"}
+            </p>
 
-          <div ref={resultTopRef} className="mt-6 scroll-mt-3 space-y-5">
-            {consult.isPending && (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-[24px] bg-white px-5 py-8 text-sm text-ink/45 shadow-[0_10px_28px_-18px_rgba(17,17,17,0.2)]">
-                <FriendsRoster compact />
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
-                  Tuno 正在分析诉求、按擅长选派 Friends…
-                </div>
+            {streamError ? (
+              <div className="rounded-[24px] border border-clay/25 bg-[#faf0e8] p-5 text-left text-[14px] leading-relaxed text-clay">
+                <p className="font-semibold">会诊请求出错了</p>
+                <p className="mt-2 text-[13px]">
+                  {streamError}
+                  {llmConfig
+                    ? " 请检查 API Key / Base URL；也可切回规则引擎。"
+                    : " 可能是服务冷启动，稍后再试。"}
+                </p>
+                <button type="button" className="nf-btn-primary mt-4 w-full !py-3" onClick={() => run()}>
+                  重试
+                </button>
+                <button
+                  type="button"
+                  className="mt-2 w-full py-2.5 text-[13px] text-ink/45"
+                  onClick={backToCompose}
+                >
+                  返回修改诉求
+                </button>
               </div>
-            )}
-            {consult.isError && (
-              <div className="rounded-[24px] border border-clay/25 bg-[#faf0e8] p-6 text-sm leading-relaxed text-clay">
-                会诊请求出错了:{consult.error.message}。
-                {llmConfig
-                  ? "如果你刚填了 API Key,请检查 Key、Base URL 与模型名;也可以切回规则引擎。"
-                  : "可能是服务正在冷启动,稍等几秒重新发起。"}
-              </div>
-            )}
-
-            {result && (
+            ) : (
               <>
-                <AnalysisCard analysis={result.analysis} catalogCount={presets.data?.plans.length} />
+                {analysis ? (
+                  <AnalysisCard analysis={analysis} catalogCount={presets.data?.plans.length} />
+                ) : streamPending ? (
+                  <AgentThinkingRail
+                    className="w-full"
+                    title="Tuno & Friends"
+                    liveLabel={liveLabel ?? "加载中…"}
+                  />
+                ) : null}
 
-                <div className="rounded-[24px] bg-white p-5 shadow-[0_10px_28px_-18px_rgba(17,17,17,0.2)]">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="label-caps">会诊记录 · {result.transcript.length} 条消息</span>
-                    <span className="text-[10px] text-ink/35">默认静音 · 点气泡听声</span>
+                {(liveMessages.length > 0 || (streamPending && !!analysis) || !!result) && (
+                  <div className="rounded-[24px] bg-white p-5 shadow-[0_10px_28px_-18px_rgba(17,17,17,0.2)]">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="label-caps">会诊记录 · {liveMessages.length} 条消息</span>
+                      <span className="text-[10px] text-ink/35">语音暂关 · 仅文字</span>
+                    </div>
+                    <div className="mt-5 max-h-[min(420px,48vh)] space-y-4 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {liveMessages.map((m) => (
+                        <TranscriptBubble key={m.id} m={m} />
+                      ))}
+                      {streamPending ? (
+                        <AgentThinkingRail
+                          className="w-full"
+                          title="会诊进行中"
+                          liveLabel={liveLabel ?? "加载中…"}
+                        />
+                      ) : null}
+                      <div ref={transcriptEndRef} />
+                    </div>
                   </div>
-                  <div className="mt-5 max-h-[min(420px,48vh)] space-y-4 overflow-y-auto pr-1">
-                    {result.transcript.slice(0, visibleCount).map((m) => (
-                      <TranscriptBubble
-                        key={m.id}
-                        m={m}
-                        onReplay={() => {
-                          if (m.from === "user") return;
-                          void speakGuidance(clipSpeakText(m.content, 200), m.from);
-                        }}
-                      />
-                    ))}
-                    <div ref={transcriptEndRef} />
-                  </div>
-                </div>
+                )}
 
-                {transcriptDone && (
+                {result && (
                   <>
                     <div className="grid gap-3">
                       {result.proposals.map((p) => (
@@ -564,9 +727,7 @@ export default function ConsultPage() {
                           Tuno 的最终决定
                         </span>
                         <span className="rounded-full bg-white/50 px-2.5 py-1 text-[10px] text-ink/55">
-                          {result.engine === "rule"
-                            ? "规则引擎"
-                            : `LLM:${result.engine}`}
+                          {result.engine === "rule" ? "规则引擎" : `LLM:${result.engine}`}
                         </span>
                       </div>
                       <h2 className="font-display mt-2 text-2xl font-extrabold">
@@ -636,6 +797,71 @@ export default function ConsultPage() {
                 )}
               </>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* —— 默认：输入 + Friends 阵容 —— */
+  return (
+    <div className={`${PHONE_BLEED} bg-cream`}>
+      <div className={`relative z-10 flex min-h-0 flex-1 flex-col ${PHONE_SAFE_TOP}`}>
+        <header className="flex shrink-0 items-start justify-between gap-3 px-5 pb-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-medium text-ink/45">Multi-Agent</p>
+            <h1 className="font-display mt-0.5 text-[1.7rem] leading-[1.12] font-extrabold text-ink">
+              Tuno &amp; Friends
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink/40 transition hover:bg-white hover:text-ink/65"
+            aria-label="会诊设置"
+            title="设置"
+          >
+            <SettingsGearIcon className="h-[18px] w-[18px]" />
+          </button>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5">
+          <p className="max-w-[40ch] text-[14px] leading-relaxed text-ink/50">
+            直接说出你想定制的练法——想缓解什么、练什么、有多少时间。Tuno
+            会叫上擅长的 Friends，从疗法目录里拼出一套属于你的冥想方案。
+          </p>
+
+          <section className="mt-4">
+            <label htmlFor="consult-intent" className="font-display text-[1.2rem] font-extrabold text-ink">
+              说说你想怎么练
+            </label>
+            <textarea
+              id="consult-intent"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run();
+              }}
+              rows={4}
+              placeholder="例如：开完会还很紧，想先落地 5 分钟，再给专注热身；今晚想睡前下行，别太久……"
+              className="mt-3 w-full resize-none rounded-[24px] bg-white px-4 py-3.5 text-[15px] leading-relaxed text-ink shadow-[0_12px_36px_-20px_rgba(17,17,17,0.28)] placeholder:text-ink/30 focus:outline-none focus:ring-2 focus:ring-ink/12"
+            />
+            <button
+              type="button"
+              onClick={() => run()}
+              disabled={streaming || !message.trim()}
+              className="nf-btn-primary mt-3 w-full !py-4"
+            >
+              <span className="inline-flex items-center justify-center gap-2">
+                让 Tuno &amp; Friends 定制
+                <IconArrow direction="right" className="h-4 w-4" />
+              </span>
+            </button>
+            <p className="mt-2 text-center text-[11px] text-ink/30">⌘/Ctrl + Enter 也可发起</p>
+          </section>
+
+          <div className="mt-5">
+            <FriendsRoster />
           </div>
         </div>
       </div>

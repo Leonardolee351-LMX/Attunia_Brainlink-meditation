@@ -98,6 +98,8 @@ export interface SessionInsight {
 
 export interface SessionDebrief {
   summary: string;
+  /** Agent 多挖出的「未被注意」的一点（可选） */
+  discovery?: string;
   deltas: { arousal: number; focus: number; calm: number };
   highlights: { label: string; value: string }[];
   insights: SessionInsight[];
@@ -108,6 +110,21 @@ export interface SessionDebrief {
     consultSuggested: boolean;
   };
   engine: string;
+}
+
+/** 交给 LLM 写赛后复盘时的统计摘要（不含原始波形） */
+export interface SessionDebriefStats {
+  planName: string;
+  durationMin: number;
+  goalId: GoalId | null;
+  sampleCount: number;
+  start: { arousal: number; focus: number; calm: number };
+  end: { arousal: number; focus: number; calm: number };
+  deltas: { arousal: number; focus: number; calm: number };
+  calmestMinLabel: string;
+  firstDropMinLabel: string | null;
+  wanderCount: number;
+  calmStability: number;
 }
 
 // ───────────────────────────── 用户上下文 / 状态 ─────────────────────────────
@@ -228,7 +245,34 @@ export interface ConsultResult {
   decision: FinalDecision;
   /** 本次会诊使用的 LLM 引擎(rule / kimi / qwen / minimax) */
   engine: string;
+  /** 服务端合并后的用户记忆 */
+  memory?: UserMemory;
 }
+
+/** 会诊流式进度（前后端协同：完成一段推一段） */
+export type ConsultStreamPhase =
+  | "reading_state"
+  | "reading_memory"
+  | "analyzing"
+  | "dispatching"
+  | "expert_working"
+  | "stitching"
+  | "done"
+  | "error";
+
+export interface ConsultStreamEvent {
+  type: "phase" | "message" | "analysis" | "result" | "error";
+  /** phase 事件：当前真实工作阶段文案 */
+  phase?: ConsultStreamPhase;
+  label?: string;
+  /** 专家名（expert_working 时） */
+  expertName?: string;
+  message?: AgentMessage;
+  analysis?: IntentAnalysis;
+  result?: ConsultResult;
+  error?: string;
+}
+
 
 // ───────────────────────────── 单 Agent 对话 ─────────────────────────────
 
@@ -239,7 +283,7 @@ export interface ChatTurn {
 
 /** 前端可填写的 LLM 配置:仅存浏览器 localStorage,随请求带给后端,不落服务器 */
 export interface LLMConfig {
-  provider: "rule" | "kimi" | "qwen" | "minimax";
+  provider: "rule" | "qiji" | "kimi" | "qwen" | "minimax";
   apiKey?: string;
   baseUrl?: string;
   model?: string;
@@ -300,6 +344,8 @@ export interface ChatAgentReply {
   engine: string;
   /** Nova 的思考链路:意图识别 → 状态合成 → 路径决策 → 匹配计算 → 回复生成 */
   trace: NovaTraceStep[];
+  /** 服务端合并后的用户记忆（含习惯 / 压缩对话），前端可写回 localStorage */
+  memory?: UserMemory;
 }
 
 
@@ -325,13 +371,44 @@ export interface ConsultRecord {
   at: string;
 }
 
-/** Nova 对用户的长期记忆(脚手架阶段存浏览器 localStorage) */
+/** 从训练史归纳的习惯画像（反作用于推荐权重 / prompt） */
+export interface UserHabits {
+  updatedAt: string;
+  favoriteGoal: GoalId | null;
+  /** 练得最多的计划 id（最多 5） */
+  preferredPlanIds: string[];
+  preferredDurationMin: number | null;
+  /** 常训练的小时（0–23，最多 3 个高峰） */
+  peakHours: number[];
+  /** 短习惯笔记（规则或 LLM 压缩，最多 8 条） */
+  notes: string[];
+}
+
+/** 压缩后的对话记忆（不是全文；供 Agent 回想用户偏好/情境） */
+export interface ChatDigestEntry {
+  at: string;
+  summary: string;
+  goalId: GoalId | null;
+  planId: string | null;
+}
+
+/**
+ * Tuno 对用户的长期记忆。
+ * 浏览器 localStorage 为热缓存；服务端 `data/user-memory/` 为落盘真相，推荐时合并使用。
+ */
 export interface UserMemory {
   sessions: SessionRecord[];
   consults: ConsultRecord[];
+  habits?: UserHabits;
+  chatDigests?: ChatDigestEntry[];
 }
 
-export const EMPTY_MEMORY: UserMemory = { sessions: [], consults: [] };
+export const EMPTY_MEMORY: UserMemory = {
+  sessions: [],
+  consults: [],
+  habits: undefined,
+  chatDigests: [],
+};
 
 export interface MemorySummary {
   totalSessions: number;
@@ -379,10 +456,62 @@ export function summarizeMemory(m: UserMemory): MemorySummary {
   };
 }
 
+/** 从 sessions 重算习惯画像（无原始脑电，仅用训练摘要） */
+export function rebuildHabits(m: UserMemory): UserHabits {
+  const sessions = m.sessions;
+  const byPlan = new Map<string, number>();
+  const byHour = new Map<number, number>();
+  for (const s of sessions) {
+    byPlan.set(s.planId, (byPlan.get(s.planId) ?? 0) + 1);
+    const h = new Date(s.at).getHours();
+    if (!Number.isNaN(h)) byHour.set(h, (byHour.get(h) ?? 0) + 1);
+  }
+  const preferredPlanIds = [...byPlan.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id]) => id);
+  const peakHours = [...byHour.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([h]) => h);
+  const summary = summarizeMemory(m);
+  const notes: string[] = [];
+  if (summary.favoriteGoal) {
+    notes.push(`用户偏好目标「${GOAL_LABELS[summary.favoriteGoal]}」`);
+  }
+  if (summary.avgDurationMin) {
+    notes.push(`习惯时长约 ${summary.avgDurationMin} 分钟`);
+  }
+  if (peakHours.length) {
+    notes.push(`常在 ${peakHours.map((h) => `${h}时`).join("/")} 段训练`);
+  }
+  if (summary.improveRate !== null && summary.totalSessions >= 3) {
+    notes.push(
+      summary.improveRate >= 0.55
+        ? "近期训练后唤醒多下降，减压路线有效"
+        : "近期唤醒下降比例偏低，可换节奏或先卸压",
+    );
+  }
+  const digests = m.chatDigests ?? [];
+  for (const d of digests.slice(-3)) {
+    if (d.summary) notes.push(`对话印象:${d.summary}`);
+  }
+  return {
+    updatedAt: new Date().toISOString(),
+    favoriteGoal: summary.favoriteGoal,
+    preferredPlanIds,
+    preferredDurationMin: summary.avgDurationMin,
+    peakHours,
+    notes: notes.slice(0, 8),
+  };
+}
+
 /** 给 LLM prompt / 规则模板 / 思考链路共用的一句话记忆摘要 */
 export function memoryToText(m: UserMemory): string {
   const s = summarizeMemory(m);
-  if (s.totalSessions === 0 && s.totalConsults === 0) return "";
+  const habits = m.habits ?? (m.sessions.length ? rebuildHabits(m) : null);
+  const digests = m.chatDigests ?? [];
+  if (s.totalSessions === 0 && s.totalConsults === 0 && digests.length === 0) return "";
   const parts: string[] = [];
   if (s.totalSessions > 0) {
     parts.push(`累计完成 ${s.totalSessions} 次训练`);
@@ -395,6 +524,16 @@ export function memoryToText(m: UserMemory): string {
       );
     }
   }
-  if (s.totalConsults > 0) parts.push(`做过 ${s.totalConsults} 次 A2A 会诊`);
+  if (s.totalConsults > 0) parts.push(`做过 ${s.totalConsults} 次会诊`);
+  if (habits?.preferredPlanIds.length) {
+    parts.push(`习惯模块优先考虑: ${habits.preferredPlanIds.slice(0, 3).join(", ")}`);
+  }
+  if (habits?.notes.length) {
+    parts.push(`习惯笔记: ${habits.notes.slice(0, 3).join(" / ")}`);
+  }
+  if (digests.length) {
+    const last = digests.slice(-2).map((d) => d.summary).filter(Boolean);
+    if (last.length) parts.push(`近期对话摘要: ${last.join("；")}`);
+  }
   return parts.join(";");
 }

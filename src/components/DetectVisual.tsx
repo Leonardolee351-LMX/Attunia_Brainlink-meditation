@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 /**
  * 校准第二 / 三段的中央画面：
  * Focus 盯小球、Meditation 松弛下沉。检测用光晕与微粒表达，不在球下挂进度条或数字。
+ * 脑电数值经指数平滑，避免 10Hz 采样导致球径一帧一跳。
  */
 export function FocusDetectVisual({ focus }: { focus: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,7 +24,17 @@ export function FocusDetectVisual({ focus }: { focus: number }) {
     }));
 
     let raf = 0;
-    const draw = (t: number) => {
+    let last = performance.now();
+    let smoothF = Math.max(0, Math.min(100, focusRef.current)) / 100;
+    const TAU = 0.32; // 秒，越大越柔
+
+    const draw = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const target = Math.max(0, Math.min(100, focusRef.current)) / 100;
+      smoothF += (target - smoothF) * (1 - Math.exp(-dt / TAU));
+      const f = smoothF;
+
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cssW = canvas.clientWidth || 280;
       const cssH = canvas.clientHeight || 232;
@@ -34,11 +45,10 @@ export function FocusDetectVisual({ focus }: { focus: number }) {
       }
       ctx.clearRect(0, 0, cssW, cssH);
 
-      const f = Math.max(0, Math.min(100, focusRef.current)) / 100;
       const cx = cssW / 2;
       const cy = cssH / 2;
       const ball = 11 + f * 10;
-      const breath = 0.5 + 0.5 * Math.sin(t / 1400);
+      const breath = 0.5 + 0.5 * Math.sin(now / 1400);
 
       const glow = ctx.createRadialGradient(cx, cy, ball * 0.2, cx, cy, 118 + f * 40);
       glow.addColorStop(0, `rgba(201, 162, 39, ${0.28 + f * 0.35})`);
@@ -49,7 +59,7 @@ export function FocusDetectVisual({ focus }: { focus: number }) {
 
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.rotate(t * 0.00018);
+      ctx.rotate(now * 0.00018);
       for (let i = 0; i < 2; i++) {
         const rr = 36 + i * 18 + breath * 4 + f * 10;
         ctx.beginPath();
@@ -64,7 +74,7 @@ export function FocusDetectVisual({ focus }: { focus: number }) {
 
       const speed = 0.35 + f * 1.4;
       for (const d of dots) {
-        d.a += d.s * speed;
+        d.a += d.s * speed * (dt * 60);
         const pr = (42 + f * 16) * d.r;
         const px = cx + Math.cos(d.a) * pr;
         const py = cy + Math.sin(d.a) * pr * 0.72;

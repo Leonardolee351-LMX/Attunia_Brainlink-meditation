@@ -1,0 +1,745 @@
+{
+  "sessionId": "session-0019",
+  "targetGoal": "sleep",
+  "durationSec": 120,
+  "positive": true,
+  "expectedImprovement": true,
+  "actualImprovement": true,
+  "startState": {
+    "arousal": 50,
+    "focus": 40,
+    "calm": 40
+  },
+  "endState": {
+    "arousal": 25.3,
+    "focus": 36.46,
+    "calm": 62.95
+  },
+  "samples": [
+    {
+      "t": 0,
+      "arousal": 50.64,
+      "focus": 39.83,
+      "calm": 39.66
+    },
+    {
+      "t": 1,
+      "arousal": 49.49,
+      "focus": 39.38,
+      "calm": 40.16
+    },
+    {
+      "t": 2,
+      "arousal": 48.52,
+      "focus": 39.68,
+      "calm": 40.78
+    },
+    {
+      "t": 3,
+      "arousal": 47.44,
+      "focus": 40.39,
+      "calm": 40.55
+    },
+    {
+      "t": 4,
+      "arousal": 46.48,
+      "focus": 40.05,
+      "calm": 40.69
+    },
+    {
+      "t": 5,
+      "arousal": 45.17,
+      "focus": 39.05,
+      "calm": 40.67
+    },
+    {
+      "t": 6,
+      "arousal": 44.02,
+      "focus": 38.18,
+      "calm": 40.16
+    },
+    {
+      "t": 7,
+      "arousal": 44.15,
+      "focus": 37.92,
+      "calm": 40.38
+    },
+    {
+      "t": 8,
+      "arousal": 43.9,
+      "focus": 37.95,
+      "calm": 41.58
+    },
+    {
+      "t": 9,
+      "arousal": 44.58,
+      "focus": 37.48,
+      "calm": 43.19
+    },
+    {
+      "t": 10,
+      "arousal": 43.26,
+      "focus": 36.76,
+      "calm": 44.54
+    },
+    {
+      "t": 11,
+      "arousal": 43.65,
+      "focus": 37.2,
+      "calm": 45.98
+    },
+    {
+      "t": 12,
+      "arousal": 43.1,
+      "focus": 36.31,
+      "calm": 46.62
+    },
+    {
+      "t": 13,
+      "arousal": 42.04,
+      "focus": 37.06,
+      "calm": 47.82
+    },
+    {
+      "t": 14,
+      "arousal": 40.94,
+      "focus": 36.53,
+      "calm": 48.88
+    },
+    {
+      "t": 15,
+      "arousal": 39.65,
+      "focus": 36.56,
+      "calm": 49.3
+    },
+    {
+      "t": 16,
+      "arousal": 39.59,
+      "focus": 37.38,
+      "calm": 50.38
+    },
+    {
+      "t": 17,
+      "arousal": 39.86,
+      "focus": 38.27,
+      "calm": 51.62
+    },
+    {
+      "t": 18,
+      "arousal": 39.28,
+      "focus": 38.84,
+      "calm": 52.46
+    },
+    {
+      "t": 19,
+      "arousal": 38.62,
+      "focus": 39.87,
+      "calm": 53.72
+    },
+    {
+      "t": 20,
+      "arousal": 39.44,
+      "focus": 40.13,
+      "calm": 54.84
+    },
+    {
+      "t": 21,
+      "arousal": 38.34,
+      "focus": 40.55,
+      "calm": 55.9
+    },
+    {
+      "t": 22,
+      "arousal": 37.7,
+      "focus": 40.53,
+      "calm": 55.32
+    },
+    {
+      "t": 23,
+      "arousal": 38.44,
+      "focus": 40.38,
+      "calm": 54.99
+    },
+    {
+      "t": 24,
+      "arousal": 39.23,
+      "focus": 40.66,
+      "calm": 54.45
+    },
+    {
+      "t": 25,
+      "arousal": 38.5,
+      "focus": 40.09,
+      "calm": 55.48
+    },
+    {
+      "t": 26,
+      "arousal": 38.12,
+      "focus": 40.63,
+      "calm": 54.94
+    },
+    {
+      "t": 27,
+      "arousal": 38.68,
+      "focus": 40.99,
+      "calm": 56.03
+    },
+    {
+      "t": 28,
+      "arousal": 38.8,
+      "focus": 41.84,
+      "calm": 56.75
+    },
+    {
+      "t": 29,
+      "arousal": 37.99,
+      "focus": 40.99,
+      "calm": 57.82
+    },
+    {
+      "t": 30,
+      "arousal": 36.68,
+      "focus": 40.83,
+      "calm": 57.1
+    },
+    {
+      "t": 31,
+      "arousal": 35.48,
+      "focus": 40.06,
+      "calm": 56.92
+    },
+    {
+      "t": 32,
+      "arousal": 35.44,
+      "focus": 39.8,
+      "calm": 57.83
+    },
+    {
+      "t": 33,
+      "arousal": 35.64,
+      "focus": 39.63,
+      "calm": 57.93
+    },
+    {
+      "t": 34,
+      "arousal": 36.3,
+      "focus": 39.21,
+      "calm": 58.56
+    },
+    {
+      "t": 35,
+      "arousal": 36.54,
+      "focus": 39.05,
+      "calm": 59.67
+    },
+    {
+      "t": 36,
+      "arousal": 36.36,
+      "focus": 39.61,
+      "calm": 60.06
+    },
+    {
+      "t": 37,
+      "arousal": 35.31,
+      "focus": 38.69,
+      "calm": 59.77
+    },
+    {
+      "t": 38,
+      "arousal": 35.7,
+      "focus": 39.23,
+      "calm": 60.72
+    },
+    {
+      "t": 39,
+      "arousal": 36.04,
+      "focus": 39.46,
+      "calm": 60.86
+    },
+    {
+      "t": 40,
+      "arousal": 35.89,
+      "focus": 39.47,
+      "calm": 60.14
+    },
+    {
+      "t": 41,
+      "arousal": 35.92,
+      "focus": 38.47,
+      "calm": 60.97
+    },
+    {
+      "t": 42,
+      "arousal": 36.61,
+      "focus": 38.84,
+      "calm": 60.89
+    },
+    {
+      "t": 43,
+      "arousal": 35.85,
+      "focus": 38.91,
+      "calm": 60.85
+    },
+    {
+      "t": 44,
+      "arousal": 35.7,
+      "focus": 39.39,
+      "calm": 61.53
+    },
+    {
+      "t": 45,
+      "arousal": 34.62,
+      "focus": 40.09,
+      "calm": 61.35
+    },
+    {
+      "t": 46,
+      "arousal": 34.29,
+      "focus": 40.3,
+      "calm": 62.6
+    },
+    {
+      "t": 47,
+      "arousal": 34.42,
+      "focus": 40.65,
+      "calm": 62.47
+    },
+    {
+      "t": 48,
+      "arousal": 35.35,
+      "focus": 41.21,
+      "calm": 62.68
+    },
+    {
+      "t": 49,
+      "arousal": 34.44,
+      "focus": 41.14,
+      "calm": 62.87
+    },
+    {
+      "t": 50,
+      "arousal": 33.21,
+      "focus": 42.11,
+      "calm": 63.47
+    },
+    {
+      "t": 51,
+      "arousal": 32.32,
+      "focus": 40.97,
+      "calm": 63.89
+    },
+    {
+      "t": 52,
+      "arousal": 32.33,
+      "focus": 41.34,
+      "calm": 64.98
+    },
+    {
+      "t": 53,
+      "arousal": 31.75,
+      "focus": 40.55,
+      "calm": 64.39
+    },
+    {
+      "t": 54,
+      "arousal": 31.01,
+      "focus": 40.37,
+      "calm": 63.43
+    },
+    {
+      "t": 55,
+      "arousal": 30.96,
+      "focus": 40.86,
+      "calm": 64.02
+    },
+    {
+      "t": 56,
+      "arousal": 29.83,
+      "focus": 40.92,
+      "calm": 63.13
+    },
+    {
+      "t": 57,
+      "arousal": 29.54,
+      "focus": 40.78,
+      "calm": 64.1
+    },
+    {
+      "t": 58,
+      "arousal": 30.05,
+      "focus": 40.95,
+      "calm": 65.28
+    },
+    {
+      "t": 59,
+      "arousal": 29.7,
+      "focus": 41.24,
+      "calm": 65.03
+    },
+    {
+      "t": 60,
+      "arousal": 29.16,
+      "focus": 41.33,
+      "calm": 64.93
+    },
+    {
+      "t": 61,
+      "arousal": 29.96,
+      "focus": 40.78,
+      "calm": 64.98
+    },
+    {
+      "t": 62,
+      "arousal": 30.03,
+      "focus": 41.74,
+      "calm": 64.8
+    },
+    {
+      "t": 63,
+      "arousal": 29.99,
+      "focus": 41.53,
+      "calm": 64.61
+    },
+    {
+      "t": 64,
+      "arousal": 30.73,
+      "focus": 41.14,
+      "calm": 64.69
+    },
+    {
+      "t": 65,
+      "arousal": 29.77,
+      "focus": 40.96,
+      "calm": 64.47
+    },
+    {
+      "t": 66,
+      "arousal": 28.7,
+      "focus": 41.31,
+      "calm": 65.22
+    },
+    {
+      "t": 67,
+      "arousal": 29.36,
+      "focus": 40.64,
+      "calm": 64.87
+    },
+    {
+      "t": 68,
+      "arousal": 30.23,
+      "focus": 39.73,
+      "calm": 63.97
+    },
+    {
+      "t": 69,
+      "arousal": 30.43,
+      "focus": 39.6,
+      "calm": 64.27
+    },
+    {
+      "t": 70,
+      "arousal": 29.58,
+      "focus": 40.09,
+      "calm": 63.57
+    },
+    {
+      "t": 71,
+      "arousal": 29.58,
+      "focus": 41.1,
+      "calm": 63.53
+    },
+    {
+      "t": 72,
+      "arousal": 30.08,
+      "focus": 40.45,
+      "calm": 64.24
+    },
+    {
+      "t": 73,
+      "arousal": 30.46,
+      "focus": 40.41,
+      "calm": 63.78
+    },
+    {
+      "t": 74,
+      "arousal": 30.76,
+      "focus": 39.52,
+      "calm": 63.88
+    },
+    {
+      "t": 75,
+      "arousal": 30.8,
+      "focus": 38.66,
+      "calm": 64.61
+    },
+    {
+      "t": 76,
+      "arousal": 31.47,
+      "focus": 37.83,
+      "calm": 64.23
+    },
+    {
+      "t": 77,
+      "arousal": 31.32,
+      "focus": 37.1,
+      "calm": 65.11
+    },
+    {
+      "t": 78,
+      "arousal": 30.44,
+      "focus": 37.52,
+      "calm": 64.4
+    },
+    {
+      "t": 79,
+      "arousal": 30.09,
+      "focus": 38.26,
+      "calm": 64.15
+    },
+    {
+      "t": 80,
+      "arousal": 28.97,
+      "focus": 37.32,
+      "calm": 63.9
+    },
+    {
+      "t": 81,
+      "arousal": 29.11,
+      "focus": 36.34,
+      "calm": 65.1
+    },
+    {
+      "t": 82,
+      "arousal": 29.54,
+      "focus": 36.77,
+      "calm": 65.38
+    },
+    {
+      "t": 83,
+      "arousal": 29.59,
+      "focus": 36.19,
+      "calm": 66.22
+    },
+    {
+      "t": 84,
+      "arousal": 29.31,
+      "focus": 36.16,
+      "calm": 66.34
+    },
+    {
+      "t": 85,
+      "arousal": 29.2,
+      "focus": 35.81,
+      "calm": 65.52
+    },
+    {
+      "t": 86,
+      "arousal": 28.51,
+      "focus": 35.23,
+      "calm": 66.24
+    },
+    {
+      "t": 87,
+      "arousal": 27.99,
+      "focus": 35.38,
+      "calm": 66.91
+    },
+    {
+      "t": 88,
+      "arousal": 26.98,
+      "focus": 34.43,
+      "calm": 66.04
+    },
+    {
+      "t": 89,
+      "arousal": 26.36,
+      "focus": 33.77,
+      "calm": 65.69
+    },
+    {
+      "t": 90,
+      "arousal": 27.31,
+      "focus": 34.95,
+      "calm": 65.75
+    },
+    {
+      "t": 91,
+      "arousal": 28.33,
+      "focus": 34.56,
+      "calm": 65.69
+    },
+    {
+      "t": 92,
+      "arousal": 28.44,
+      "focus": 35.67,
+      "calm": 65.57
+    },
+    {
+      "t": 93,
+      "arousal": 29.47,
+      "focus": 35.56,
+      "calm": 65.4
+    },
+    {
+      "t": 94,
+      "arousal": 29.44,
+      "focus": 35.63,
+      "calm": 64.81
+    },
+    {
+      "t": 95,
+      "arousal": 28.49,
+      "focus": 35.94,
+      "calm": 64.64
+    },
+    {
+      "t": 96,
+      "arousal": 27.67,
+      "focus": 35.25,
+      "calm": 65.35
+    },
+    {
+      "t": 97,
+      "arousal": 27.93,
+      "focus": 34.36,
+      "calm": 64.7
+    },
+    {
+      "t": 98,
+      "arousal": 27.34,
+      "focus": 33.65,
+      "calm": 65.66
+    },
+    {
+      "t": 99,
+      "arousal": 26.85,
+      "focus": 33.48,
+      "calm": 66.28
+    },
+    {
+      "t": 100,
+      "arousal": 26.73,
+      "focus": 34.37,
+      "calm": 67.34
+    },
+    {
+      "t": 101,
+      "arousal": 26.02,
+      "focus": 33.54,
+      "calm": 67.1
+    },
+    {
+      "t": 102,
+      "arousal": 26.16,
+      "focus": 32.65,
+      "calm": 66.63
+    },
+    {
+      "t": 103,
+      "arousal": 27.09,
+      "focus": 33.56,
+      "calm": 65.96
+    },
+    {
+      "t": 104,
+      "arousal": 27.87,
+      "focus": 34.51,
+      "calm": 64.96
+    },
+    {
+      "t": 105,
+      "arousal": 26.89,
+      "focus": 34.4,
+      "calm": 64.04
+    },
+    {
+      "t": 106,
+      "arousal": 26.96,
+      "focus": 33.65,
+      "calm": 63.45
+    },
+    {
+      "t": 107,
+      "arousal": 27.12,
+      "focus": 33.74,
+      "calm": 63.68
+    },
+    {
+      "t": 108,
+      "arousal": 27.7,
+      "focus": 33.82,
+      "calm": 64.05
+    },
+    {
+      "t": 109,
+      "arousal": 27.85,
+      "focus": 33.67,
+      "calm": 63.48
+    },
+    {
+      "t": 110,
+      "arousal": 26.9,
+      "focus": 32.99,
+      "calm": 63.36
+    },
+    {
+      "t": 111,
+      "arousal": 26.49,
+      "focus": 33.23,
+      "calm": 64.16
+    },
+    {
+      "t": 112,
+      "arousal": 27.27,
+      "focus": 32.92,
+      "calm": 63.51
+    },
+    {
+      "t": 113,
+      "arousal": 26.47,
+      "focus": 33.71,
+      "calm": 63.1
+    },
+    {
+      "t": 114,
+      "arousal": 26.58,
+      "focus": 33.27,
+      "calm": 63.32
+    },
+    {
+      "t": 115,
+      "arousal": 26.33,
+      "focus": 33.89,
+      "calm": 62.88
+    },
+    {
+      "t": 116,
+      "arousal": 26.24,
+      "focus": 33.91,
+      "calm": 62.56
+    },
+    {
+      "t": 117,
+      "arousal": 25.23,
+      "focus": 35.0,
+      "calm": 63.44
+    },
+    {
+      "t": 118,
+      "arousal": 26.06,
+      "focus": 36.0,
+      "calm": 62.53
+    },
+    {
+      "t": 119,
+      "arousal": 25.3,
+      "focus": 36.46,
+      "calm": 62.95
+    }
+  ],
+  "meta": {
+    "source": "synthetic",
+    "annotator": "evolution-model-v1",
+    "reviewed": false
+  }
+}

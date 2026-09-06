@@ -47,3 +47,17 @@ backups/*.zip
 config/*.local.md
 # Scratch / temp media
 .tmp-xhs/
+# Local runtime data (keep memory scaffold docs)
+data/**
+!data/user-memory/
+!data/user-memory/README.md
+!data/user-memory/sessions/
+!data/user-memory/sessions/.gitkeep
+
+
+# Local dumps / nested clone / EEG samples — never ship
+music/
+eval/user_data/
+Attunia_Brainlink-meditation/
+testingLab/
+scripts/_session_head.tsx

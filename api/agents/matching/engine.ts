@@ -81,8 +81,11 @@ export function matchPlans(
   topN = 3,
   /** 最近练过的计划 id:命中则降权,避免反复推荐同一个方法 */
   recentPlanIds?: string[],
+  /** 习惯偏好计划 id:轻度加分，让推荐贴合用户 Work-Life 节律习惯 */
+  preferredPlanIds?: string[],
 ): ScoredPlan[] {
   const recent = new Set(recentPlanIds ?? []);
+  const preferred = new Set(preferredPlanIds ?? []);
   const scored: ScoredPlan[] = plans.map((plan) => {
     const goalAffinity = plan.goalAffinity[goal.id];
     const { fit: stateFitRaw, why: stateWhy } = scoreStateFit(plan, state);
@@ -95,8 +98,10 @@ export function matchPlans(
     };
     // 多样性惩罚:最近练过的计划降到 75%,让方法库真正轮转起来
     const repeatPenalty = recent.has(plan.id) ? 0.75 : 1;
+    // 习惯加分：长期偏好模块 +8%（与最近降权可叠加，仍可换新）
+    const habitBoost = preferred.has(plan.id) ? 1.08 : 1;
     const score = Math.round(
-      (goalAffinity * 50 + stateFitRaw * 30 + durationFitRaw * 20) * repeatPenalty,
+      (goalAffinity * 50 + stateFitRaw * 30 + durationFitRaw * 20) * repeatPenalty * habitBoost,
     );
 
     const why: string[] = [
@@ -104,6 +109,7 @@ export function matchPlans(
       ...stateWhy,
       ...durWhy,
       ...(repeatPenalty < 1 ? ["最近练过这个模块,本次适度降权,优先尝试新方法"] : []),
+      ...(habitBoost > 1 ? ["符合你的训练习惯,轻度优先"] : []),
     ];
 
     return { plan, score, breakdown, why };

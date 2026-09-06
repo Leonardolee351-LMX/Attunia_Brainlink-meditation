@@ -12,7 +12,7 @@
     "check": "tsc -b",
     "format": "prettier --write .",
     "test": "vitest run",
-    "eval": "vitest run eval/run_eval.test.ts",
+    "eval": "vitest run eval/run_eval.test.ts api/agents/work-detect.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push"

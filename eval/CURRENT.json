@@ -1,5 +1,5 @@
 {
-  "id": "eval_No.1",
-  "dir": "eval_No.1/eval",
-  "note": "初版评测集。换集时只改这个文件的 id 和 dir，不要改跑分代码。"
+  "id": "eval_No.2",
+  "dir": "eval_No.2/eval",
+  "note": "2.0：承接 No.1 + user_data 铺成的 10 分钟工作态检测窗（work_windows.jsonl）。换集只改本文件。"
 }

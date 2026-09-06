@@ -24,7 +24,7 @@ import type {
 import { getGoal, GOALS, PLANS } from "./data/presets";
 import { matchPlans } from "./matching/engine";
 import { getLLMProvider, OpenAICompatibleProvider } from "./llm/provider";
-import { memoryToText, recentPlanIds, summarizeMemory } from "@contracts/agents";
+import { memoryToText, recentPlanIds, rebuildHabits, summarizeMemory } from "@contracts/agents";
 import { assessState } from "./state-assessment";
 import { detectCrisis } from "./crisis";
 
@@ -264,7 +264,17 @@ export class SingleAgent {
       detail: `目标明确(「${goal.label}」),交给匹配引擎对 ${PLANS.length} 个训练模块逐一打分,取前三。`,
       engine: "policy",
     });
-    const recommendations = matchPlans(goal, mergedState, PLANS, 3, recentPlanIds(memory));
+    const habitPrefs =
+      memory?.habits?.preferredPlanIds ??
+      (memory && memory.sessions.length ? rebuildHabits(memory).preferredPlanIds : undefined);
+    const recommendations = matchPlans(
+      goal,
+      mergedState,
+      PLANS,
+      3,
+      recentPlanIds(memory),
+      habitPrefs,
+    );
     trace.push({
       key: "match",
       title: "匹配计算",

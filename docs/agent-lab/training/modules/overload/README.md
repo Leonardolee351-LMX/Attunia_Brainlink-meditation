@@ -17,7 +17,8 @@
 
 | 交付 | 路径 |
 |------|------|
+| **前端交接（请先读）** | [`briefs/FRONTEND-HANDOFF-overload-visuals.md`](../../../briefs/FRONTEND-HANDOFF-overload-visuals.md) → 票 **F-23** |
 | 口播阶段 ↔ 画面事件对照 | [interactive-motion.md](./interactive-motion.md) |
-| 可播放演示（协议钟；脑电只改品质） | [interactive-demo.html](./interactive-demo.html) |
+| HTML 行为草图（可选，常打不开） | [interactive-demo.html](./interactive-demo.html) |
 
-`visual.kind`：`ground-stairs` · `tense-release-discs` · `exhale-triangle` · `safe-portal`。落地 `src/` 须总控开 F 票。
+`visual.kind`：`ground-stairs` · `tense-release-discs` · `exhale-triangle` · `safe-portal`。

@@ -6,7 +6,6 @@ distinct per-scene textures, quieter than guidance, loopable ~96s.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import numpy as np
@@ -255,25 +254,84 @@ def scene_overload(rng: np.random.Generator) -> np.ndarray:
     return stereo(fade(normalize(y, 0.64), 0.25, 3.0))
 
 
+def pleasant_asmr_drop(
+    t: np.ndarray,
+    rng: np.random.Generator,
+    at: float,
+    *,
+    bright: float = 1.0,
+    amp: float = 0.11,
+) -> np.ndarray:
+    """Light joyful water-drop ASMR — brighter than utility drip, never cartoon splash."""
+    y = np.zeros_like(t)
+    n = int(0.28 * SR)
+    tt = np.arange(n) / SR
+    f0 = rng.uniform(1100, 1680) * bright
+    f = f0 * np.exp(-tt * 7.5)
+    env = np.exp(-tt * 11) * (1 - 0.35 * tt / 0.28)
+    tone = env * np.sin(2 * np.pi * np.cumsum(f) / SR)
+    sparkle = env * np.sin(2 * np.pi * np.cumsum(f * 1.9) / SR) * 0.22
+    grit = rng.standard_normal(n) * env * 0.08
+    sos = butter_sos("bandpass", (700, 4200), 2)
+    body = sosfilt(sos, tone + sparkle + grit) * amp
+    idx = int(at * SR)
+    end = min(idx + n, len(y))
+    y[idx:end] += body[: end - idx]
+    return y
+
+
+def soft_wood_tap(t: np.ndarray, rng: np.random.Generator, at: float, amp: float = 0.04) -> np.ndarray:
+    y = np.zeros_like(t)
+    n = int(0.09 * SR)
+    tt = np.arange(n) / SR
+    env = np.exp(-tt * 55)
+    click = env * np.sin(2 * np.pi * rng.uniform(480, 720) * tt)
+    tick = env * rng.standard_normal(n) * 0.35
+    sos = butter_sos("bandpass", (300, 2800), 2)
+    body = sosfilt(sos, click + tick) * amp
+    idx = int(at * SR)
+    end = min(idx + n, len(y))
+    y[idx:end] += body[: end - idx]
+    return y
+
+
 def scene_drift_back(rng: np.random.Generator) -> np.ndarray:
+    """轻松愉悦 ASMR 音效床：水滴 / 木触 / 薄荷空气 — 不是成曲。"""
     t = time_axis()
-    # irregular drops first half; slightly more regular later — no kalimba song
-    early = []
-    t0 = 1.4
-    while t0 < 42:
-        early.append(t0)
-        t0 += float(rng.uniform(1.1, 2.6))
-    late = []
-    t0 = 42.5
+    drops = np.zeros_like(t)
+    # early: playful irregular gaps
+    t0 = 0.9
+    while t0 < 44:
+        drops += pleasant_asmr_drop(t, rng, t0, bright=rng.uniform(0.92, 1.12), amp=rng.uniform(0.085, 0.12))
+        # occasional double-drop for lightness
+        if rng.random() < 0.22:
+            drops += pleasant_asmr_drop(
+                t, rng, t0 + rng.uniform(0.12, 0.28), bright=1.05, amp=0.06
+            )
+        t0 += float(rng.uniform(0.85, 2.35))
+    # later: slightly more regular return (still not a beat)
+    t0 = 44.2
+    while t0 < DUR - 1.5:
+        drops += pleasant_asmr_drop(t, rng, t0, bright=1.0, amp=0.1)
+        t0 += float(rng.uniform(0.95, 1.35))
+
+    taps = np.zeros_like(t)
+    t0 = 3.2
     while t0 < DUR - 2:
-        late.append(t0)
-        t0 += 1.15  # softer regularity, not a groove
-    drops = water_drops(t, rng, early + late)
-    mint = soft_pad(t, [329.6, 392.0, 493.9], 0.065, 0.08) * iso_gain(t, 0.55, 1.0)
-    surface = sosfilt(butter_sos("bandpass", (400, 1800), 2), colored_noise(N, "pink", rng))
-    surface *= 0.035 * (0.5 + 0.5 * np.sin(2 * np.pi * 0.06 * t))
-    y = mix(drops, mint, surface)
-    return stereo(fade(normalize(y, 0.64)))
+        if rng.random() < 0.55:
+            taps += soft_wood_tap(t, rng, t0, amp=rng.uniform(0.028, 0.045))
+        t0 += float(rng.uniform(1.6, 3.8))
+
+    mint = soft_pad(t, [329.6, 392.0, 523.3], 0.055, 0.09) * iso_gain(t, 0.5, 0.95)
+    # soft surface shimmer (not noise wall)
+    surface = sosfilt(butter_sos("bandpass", (900, 3200), 2), colored_noise(N, "pink", rng))
+    surface *= 0.022 * (0.45 + 0.55 * np.sin(2 * np.pi * 0.07 * t))
+    air = sosfilt(butter_sos("lowpass", 350), colored_noise(N, "pink", rng)) * 0.04
+    y = mix(drops, taps, mint, surface, air)
+    # wider pleasant stereo: drops slightly L/R wander via delay variance
+    left = fade(normalize(y, 0.62), 0.5, 2.8)
+    right = fade(normalize(y * 0.98 + np.roll(drops, int(0.014 * SR)) * 0.08, 0.62), 0.5, 2.8)
+    return stereo(left, right, delay_ms=14)
 
 
 def scene_clock_out(rng: np.random.Generator) -> np.ndarray:
@@ -305,26 +363,29 @@ def write_wav(path: Path, stereo_f: np.ndarray) -> None:
 
 
 def main() -> None:
+    import sys
+
     root = Path(__file__).resolve().parent
     out_dir = root / "audio"
     out_dir.mkdir(parents=True, exist_ok=True)
     public = root.parents[2] / "public" / "audio" / "scenes"
     public.mkdir(parents=True, exist_ok=True)
-    meta = json.loads((root / "music-prompts.json").read_text(encoding="utf-8"))
-    for track in meta["tracks"]:
-        seeds = {
-            "clock-in": 8401,
-            "post-meet": 6802,
-            "lunch-tide": 6203,
-            "overload": 7204,
-            "drift-back": 7605,
-            "clock-out": 5806,
-        }
-        rng = np.random.default_rng(seeds[track["id"]])
-        audio = BUILDERS[track["id"]](rng)
-        dest = out_dir / f"{track['id']}.wav"
+    only = set(sys.argv[1:])
+    seeds = {
+        "clock-in": 8401,
+        "post-meet": 6802,
+        "lunch-tide": 6203,
+        "overload": 7204,
+        "drift-back": 7605,
+        "clock-out": 5806,
+    }
+    ids = [tid for tid in BUILDERS if not only or tid in only]
+    for tid in ids:
+        rng = np.random.default_rng(seeds[tid])
+        audio = BUILDERS[tid](rng)
+        dest = out_dir / f"{tid}.wav"
         write_wav(dest, audio)
-        write_wav(public / f"{track['id']}.wav", audio)
+        write_wav(public / f"{tid}.wav", audio)
         print(f"wrote {dest} ({dest.stat().st_size} bytes)")
 
 

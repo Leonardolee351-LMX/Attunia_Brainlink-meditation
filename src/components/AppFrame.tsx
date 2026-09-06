@@ -1,6 +1,7 @@
 /**
  * 工作室画板：iPhone 逻辑画幅，较小 Dynamic Island + 底部 Home Indicator。
- * 机框左侧外（画板区）放「回到开屏」快捷入口，不进手机内 UI。
+ * 机框外最左：开屏 / 提醒机制 / 模拟脑电；最右：演示时间轴（Explore / Scene）。
+ * 机框内顶部：工作态提醒信息条（WorkReminderBar）。
  * 开屏流程锁滚 + 路由轻量入场（Premium decelerate）。
  * 顶垫 sm:pt-[44px] 须与 src/lib/onboarding-layout.ts 出血常量同步。
  */
@@ -8,12 +9,16 @@ import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import BottomTabBar from "./BottomTabBar";
 import PlanFlipLayer from "./PlanFlipLayer";
+import StudioSideRail from "./StudioSideRail";
+import DemoClockRail from "./DemoClockRail";
+import WorkReminderBar from "./WorkReminderBar";
 import { PlanPreviewProvider } from "@/providers/plan-preview";
 import { IconArrow } from "@/components/icons/IconArrow";
 
 function showTabs(pathname: string) {
   return (
     pathname === "/home" ||
+    pathname === "/explore" ||
     pathname.startsWith("/chat") ||
     pathname.startsWith("/consult") ||
     pathname.startsWith("/profile") ||
@@ -22,7 +27,11 @@ function showTabs(pathname: string) {
 }
 
 function lockOnboardingScroll(pathname: string) {
-  return pathname === "/" || pathname.startsWith("/onboarding");
+  return pathname === "/" || pathname === "/purpose" || pathname.startsWith("/onboarding");
+}
+
+function showDemoClock(pathname: string) {
+  return pathname === "/explore" || pathname.startsWith("/scene");
 }
 
 export default function AppFrame({ children }: { children: React.ReactNode }) {
@@ -30,7 +39,8 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
   const tabs = showTabs(pathname);
   const lockScroll = lockOnboardingScroll(pathname);
   const phoneScrollRef = useRef<HTMLDivElement>(null);
-  const showSplashShortcut = pathname !== "/";
+  const showSplashShortcut = pathname !== "/" && pathname !== "/purpose";
+  const demoClock = showDemoClock(pathname);
 
   useEffect(() => {
     phoneScrollRef.current?.scrollTo({ top: 0 });
@@ -43,28 +53,17 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
       <div className="pointer-events-none absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-[#d7e4ff]/80 blur-3xl" />
       <div className="nf-grain" />
 
-      <PlanPreviewProvider>
-        <div className="relative my-auto flex items-start justify-center gap-3 sm:gap-4">
-          {showSplashShortcut && (
-            <Link
-              to="/"
-              className="mt-[52px] hidden shrink-0 flex-col items-center gap-1.5 rounded-[22px] bg-white px-3 py-3 text-ink shadow-[0_12px_32px_-14px_rgba(17,17,17,0.28)] ring-1 ring-ink/5 transition hover:bg-mint active:scale-[0.98] sm:flex"
-              title="回到开屏页"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white">
-                <IconArrow direction="left" className="h-4 w-4" />
-              </span>
-              <span className="max-w-[4.5rem] text-center text-[11px] leading-snug font-semibold">
-                开屏页
-              </span>
-            </Link>
-          )}
+      <StudioSideRail showSplash={showSplashShortcut} />
+      <DemoClockRail visible={demoClock} />
 
+      <PlanPreviewProvider>
+        <div className="relative my-auto flex items-start justify-center">
           <div
             data-phone-frame
             className="relative flex h-dvh w-full max-w-[402px] shrink-0 flex-col overflow-hidden bg-cream sm:h-[min(874px,calc(100dvh-3rem))] sm:w-[min(402px,calc((100dvh-3rem)*402/874))] sm:max-w-none sm:rounded-[48px] sm:shadow-[0_40px_90px_-28px_rgba(17,17,17,0.35)]"
           >
             <div className="pointer-events-none absolute top-[12px] left-1/2 z-50 hidden h-[26px] w-[92px] -translate-x-1/2 rounded-full bg-ink sm:block" />
+            <WorkReminderBar />
             <div
               ref={phoneScrollRef}
               data-phone-scroll
@@ -87,10 +86,6 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
             <PlanFlipLayer />
             <div className="pointer-events-none absolute bottom-[8px] left-1/2 z-50 hidden h-[5px] w-[134px] -translate-x-1/2 rounded-full bg-ink/85 sm:block" />
           </div>
-
-          {showSplashShortcut ? (
-            <div className="mt-[52px] hidden w-[58px] shrink-0 sm:block" aria-hidden />
-          ) : null}
         </div>
       </PlanPreviewProvider>
 

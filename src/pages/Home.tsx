@@ -12,6 +12,7 @@ import { makeHomeIntentState, routeHomeIntent } from "@/lib/intent-route";
 import { planCoverSrc, planCrop } from "@/lib/plan-covers";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
+import { getDemoHour, subscribeDemoHour, formatDemoClock } from "@/lib/demo-clock";
 
 /** 前 7 天新用户场景:按校准日期推算「第 N 天」 */
 function daySince(iso: string): number {
@@ -50,15 +51,17 @@ export default function Home() {
   const [editingName, setEditingName] = useState(false);
   const [intent, setIntent] = useState("");
   const [live, setLive] = useState<BioHint | null>(() => liveBioHint());
-  const hour = new Date().getHours();
+  const [hour, setHour] = useState(() => getDemoHour());
   const circadian = circadianGreeting(hour);
+
+  useEffect(() => subscribeDemoHour((h) => setHour(h)), []);
 
   useEffect(() => {
     return subscribeLive((sample) => {
       if (!isLiveHardware()) return;
       const next = { arousal: sample.arousal, focus: sample.focus, calm: sample.calm };
       setLive((prev) => {
-        const now = new Date().getHours();
+        const now = getDemoHour();
         if (!prev) return next;
         if (recommendWorkScene(now, prev) !== recommendWorkScene(now, next)) return next;
         return prev;
@@ -76,7 +79,7 @@ export default function Home() {
     const text = intent.trim();
     if (!text) return;
     const state = makeHomeIntentState(text);
-    navigate(routeHomeIntent(text) === "consult" ? "/consult" : "/chat", { state });
+    navigate(routeHomeIntent(text) === "consult" ? "/consult" : "/home", { state });
   };
 
   const openRecommend = () => {
@@ -114,6 +117,9 @@ export default function Home() {
           <div className={darkHero ? "text-white" : "text-ink"}>
             <p className={`text-[12px] font-medium ${darkHero ? "text-white/50" : "text-ink/45"}`}>
               {baseline ? `第 ${daySince(baseline.calibratedAt)} 天 · 共 7 天` : "Attunia"}
+              <span className={`ml-2 tabular-nums ${darkHero ? "text-white/35" : "text-ink/30"}`}>
+                · {formatDemoClock(hour)}
+              </span>
             </p>
             <h1 className="font-display mt-1 text-[clamp(1.7rem,7vw,2rem)] leading-[1.12] font-extrabold">
               {circadian.greet}
@@ -247,8 +253,10 @@ export default function Home() {
         <section className="nf-section">
           <div className="mb-3 flex items-baseline justify-between">
             <div>
-              <h3 className="text-[13px] font-semibold text-ink/70">探索训练</h3>
-              <p className="mt-1 text-[12px] leading-relaxed text-ink/45">具体方法都可以点进去试。</p>
+              <h3 className="text-[13px] font-semibold text-ink/70">探索训练计划</h3>
+              <p className="mt-1 text-[12px] leading-relaxed text-ink/45">
+                点进去可自选分钟，马上开练。
+              </p>
             </div>
             <span className="text-[11px] text-ink/40">{presets.data?.plans.length ?? "…"} 个</span>
           </div>

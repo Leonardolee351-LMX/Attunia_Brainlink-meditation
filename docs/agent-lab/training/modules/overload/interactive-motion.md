@@ -1,8 +1,8 @@
 # 大脑超载 · 四模块交互动效（意义匹配）
 
 **目的：** 让画面「在说」与逐字稿同一件事——落地、松、泄、回岛；不是通用光球呼吸。  
-**演示页：** 同目录 [`interactive-demo.html`](./interactive-demo.html)（协议钟驱动；脑电只改品质）。  
-**给前端：** 落地到 `src/` 须总控开 F 票（建议对齐 F-12 超载侧）；本文与演示属训练咨询交付。
+**给前端（主入口）：** [`docs/agent-lab/briefs/FRONTEND-HANDOFF-overload-visuals.md`](../../briefs/FRONTEND-HANDOFF-overload-visuals.md)（票 **F-23**）。  
+**参考原型：** 同目录 `interactive-demo.html`（编辑器里常打不开，**实现以交接文档为准**）。
 
 ---
 

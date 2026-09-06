@@ -2,14 +2,13 @@
  * 用户 Agent(Tuno)—— Multi-Agent 会诊的编排者。
  *
  * 现行边界:docs/agent-lab/multi-agent-boundary.md
- * 1. 判定有序环节(最多两步)并按擅长派工;一人可领两步
- * 2. 专家只从已有疗法目录选模块,禁止 invented / 生图 / 作曲
- * 3. 按步拼接阶段引导词;不能互改时由 Tuno 整合
+ * 支持 onProgress：真实阶段完成即推送，供 SSE 渐进呈现。
  */
 import type {
   AgentConflict,
   AgentMessage,
   ConsultResult,
+  ConsultStreamEvent,
   ExpertProposal,
   GoalId,
   LLMConfig,
@@ -17,11 +16,11 @@ import type {
   UserProfile,
   UserState,
 } from "@contracts/agents";
-import { getGoal, getPlan, GOALS } from "./data/presets";
+import { getGoal, getPlan, GOALS, PLANS } from "./data/presets";
 import { matchPlans } from "./matching/engine";
 import { createExperts } from "./experts/experts";
 import { getLLMProvider } from "./llm/provider";
-import { memoryToText, recentPlanIds } from "@contracts/agents";
+import { memoryToText, recentPlanIds, rebuildHabits } from "@contracts/agents";
 import { assessState } from "./state-assessment";
 import { buildTherapyCatalog } from "./data/therapy-catalog";
 import {
@@ -38,12 +37,17 @@ function msg(partial: Omit<AgentMessage, "id">): AgentMessage {
   return { id: `m${++msgSeq}`, ...partial };
 }
 
-/** 需求配比里权重最高的目标 = 本次会诊的主目标 */
 function dominantGoalId(weights: Record<GoalId, number>): GoalId {
   const entries = Object.entries(weights) as [GoalId, number][];
   entries.sort((a, b) => b[1] - a[1]);
   return entries[0]?.[0] ?? "calm";
 }
+
+function delay(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+export type ConsultProgress = (ev: ConsultStreamEvent) => void;
 
 export class UserAgent {
   readonly id = "tuno";
@@ -54,22 +58,48 @@ export class UserAgent {
     this.profile = profile;
   }
 
-  /**
-   * 对话式会诊:用户只说一句话,剩下全由 Agent 编排。
-   */
   async consultMessage(
     message: string,
     state: UserState,
     llmOverride?: LLMConfig,
     memory?: UserMemory,
+    onProgress?: ConsultProgress,
   ): Promise<ConsultResult> {
     msgSeq = 0;
+    const emit = (ev: ConsultStreamEvent) => {
+      try {
+        onProgress?.(ev);
+      } catch {
+        /* ignore */
+      }
+    };
+    const transcript: AgentMessage[] = [];
+    const push = (partial: Omit<AgentMessage, "id">) => {
+      const m = msg(partial);
+      transcript.push(m);
+      emit({ type: "message", message: m });
+      return m;
+    };
+
     const llm = getLLMProvider(llmOverride);
     const memText = memory ? memoryToText(memory) : "";
-    const assessed = assessState(state);
-    const experts = createExperts();
+    const habitPrefs =
+      memory?.habits?.preferredPlanIds ??
+      (memory && memory.sessions.length ? rebuildHabits(memory).preferredPlanIds : undefined);
 
-    const transcript: AgentMessage[] = [];
+    emit({ type: "phase", phase: "reading_state", label: "正在读取当下脑状态…" });
+    const assessed = assessState(state);
+    await delay(180);
+
+    emit({
+      type: "phase",
+      phase: "reading_memory",
+      label: memText ? "正在读取你的训练习惯与对话记忆…" : "正在确认：尚无训练史，按新用户理解…",
+    });
+    await delay(160);
+
+    const experts = createExperts();
+    emit({ type: "phase", phase: "analyzing", label: "Tuno 正在理解你的诉求与顺序…" });
 
     const roster = experts.map((e) => ({
       expertId: e.id,
@@ -91,52 +121,57 @@ export class UserAgent {
       roster,
     );
     const stages = stagesFromAnalysis(analysis, message);
+    emit({ type: "analysis", analysis });
 
-    transcript.push(
-      msg({
-        from: this.id,
-        fromName: this.name,
-        to: "broadcast",
-        role: "user_agent",
-        kind: "note",
-        content:
-          `我听到的是:${analysis.summary}` +
-          `请 ${analysis.selectedExperts.map((e) => e.expertName).join("、")} 按环节从现有疗法目录里选模块。` +
-          `这一次不创作新练习,不生图,不作曲。`,
-        payload: analysis,
-      }),
-    );
+    emit({ type: "phase", phase: "dispatching", label: "正在按擅长派工给 Friends…" });
+
+    push({
+      from: this.id,
+      fromName: this.name,
+      to: "broadcast",
+      role: "user_agent",
+      kind: "note",
+      content:
+        `我听到的是:${analysis.summary}` +
+        `请 ${analysis.selectedExperts.map((e) => e.expertName).join("、")} 按环节从现有疗法目录里选模块。` +
+        `这一次不创作新练习,不生图,不作曲。`,
+      payload: analysis,
+    });
 
     const goalId = stages[0]?.goalId ?? dominantGoalId(analysis.weights);
-    const allPlans = getAllPlans();
+    const allPlans = PLANS;
     const selectedIds = new Set(analysis.selectedExperts.map((e) => e.expertId));
     const called = experts.filter((e) => selectedIds.has(e.id));
     const calledExperts = called.length > 0 ? called : experts;
 
     for (const expert of calledExperts) {
       const assignment = analysis.selectedExperts.find((a) => a.expertId === expert.id);
-      transcript.push(
-        msg({
-          from: this.id,
-          fromName: this.name,
-          to: expert.id,
-          role: "user_agent",
-          kind: "ask",
-          content:
-            `用户原话:「${message}」。` +
-            `当下脑状态:Arousal ${state.arousal} / Calm ${state.calm} / Focus ${state.focus},` +
-            `睡眠 ${state.sleepHours}h,可用 ${state.availableMinutes} 分钟。` +
-            `状态评测:${assessed.name}——${assessed.depiction}。` +
-            (memText ? `我记得他的历史:${memText}。` : `他还没有训练历史。`) +
-            `你的分工:${assignment?.task ?? `从${expert.domain}角度给出建议`}。` +
-            `现有疗法目录共 ${allPlans.length} 项。只对照目录选模块,禁止即兴、生图、作曲。`,
-        }),
-      );
+      push({
+        from: this.id,
+        fromName: this.name,
+        to: expert.id,
+        role: "user_agent",
+        kind: "ask",
+        content:
+          `用户原话:「${message}」。` +
+          `当下脑状态:Arousal ${state.arousal} / Calm ${state.calm} / Focus ${state.focus},` +
+          `睡眠 ${state.sleepHours}h,可用 ${state.availableMinutes} 分钟。` +
+          `状态评测:${assessed.name}——${assessed.depiction}。` +
+          (memText ? `我记得他的历史:${memText}。` : `他还没有训练历史。`) +
+          `你的分工:${assignment?.task ?? `从${expert.domain}角度给出建议`}。` +
+          `现有疗法目录共 ${allPlans.length} 项。只对照目录选模块,禁止即兴、生图、作曲。`,
+      });
     }
 
     const proposals: ExpertProposal[] = [];
     const picks: StagePick[] = [];
     for (const expert of calledExperts) {
+      emit({
+        type: "phase",
+        phase: "expert_working",
+        label: `${expert.name} 正在从目录里选模块…`,
+        expertName: expert.name,
+      });
       const assignment = analysis.selectedExperts.find((a) => a.expertId === expert.id);
       const jobs = parseStageJobs(assignment?.task ?? "");
       const work =
@@ -147,7 +182,14 @@ export class UserAgent {
       for (const job of work) {
         const stageGoalId = job.kind === "overlay" ? (stages[stages.length - 1]?.goalId ?? goalId) : job.goalId;
         const stageGoal = getGoal(stageGoalId) ?? GOALS[0];
-        const scored = matchPlans(stageGoal, state, allPlans, allPlans.length, recentPlanIds(memory));
+        const scored = matchPlans(
+          stageGoal,
+          state,
+          allPlans,
+          allPlans.length,
+          recentPlanIds(memory),
+          habitPrefs,
+        );
         const catalog = buildTherapyCatalog(scored);
         const proposal = await expert.propose({
           goal: stageGoal,
@@ -171,40 +213,45 @@ export class UserAgent {
           firstKept = proposal;
           proposals.push(proposal);
         }
-        transcript.push(
-          msg({
-            from: proposal.agentId,
-            fromName: proposal.agentName,
-            to: this.id,
-            role: "expert",
-            kind: "proposal",
-            content:
-              (job.kind === "overlay" ? "感官层(目录点选):" : `第${job.index}步:`) + proposal.rationale,
-            payload: proposal,
-          }),
-        );
+        push({
+          from: proposal.agentId,
+          fromName: proposal.agentName,
+          to: this.id,
+          role: "expert",
+          kind: "proposal",
+          content:
+            (job.kind === "overlay" ? "感官层(目录点选):" : `第${job.index}步:`) + proposal.rationale,
+          payload: proposal,
+        });
       }
     }
 
+    emit({ type: "phase", phase: "stitching", label: "Tuno 正在拼接环节与收束方案…" });
+
     const conflicts = this.detectStageConflicts(picks);
     for (const c of conflicts) {
-      transcript.push(
-        msg({
-          from: this.id,
-          fromName: this.name,
-          to: "broadcast",
-          role: "user_agent",
-          kind: "challenge",
-          content: `发现分歧【${c.topic}】:${c.agents.map((a) => `${a.agentName} 主张 ${a.position}`).join(";")}`,
-          payload: c,
-        }),
-      );
+      push({
+        from: this.id,
+        fromName: this.name,
+        to: "broadcast",
+        role: "user_agent",
+        kind: "challenge",
+        content: `发现分歧【${c.topic}】:${c.agents.map((a) => `${a.agentName} 主张 ${a.position}`).join(";")}`,
+        payload: c,
+      });
     }
 
     for (const st of stages) {
       if (picks.some((p) => p.role === "plan" && p.stageIndex === st.index)) continue;
       const stageGoal = getGoal(st.goalId) ?? GOALS[0];
-      const scored = matchPlans(stageGoal, state, allPlans, allPlans.length, recentPlanIds(memory));
+      const scored = matchPlans(
+        stageGoal,
+        state,
+        allPlans,
+        allPlans.length,
+        recentPlanIds(memory),
+        habitPrefs,
+      );
       const top = scored[0];
       if (!top) continue;
       picks.push({
@@ -241,23 +288,33 @@ export class UserAgent {
     if (llmReasoning?.reasoning?.length) {
       decision.reasoning = llmReasoning.reasoning;
     }
-    transcript.push(
-      msg({
-        from: this.id,
-        fromName: this.name,
-        to: "user",
-        role: "user_agent",
-        kind: "decision",
-        content: `最终决定:「${decision.planName}」,${decision.customized.durationMin} 分钟。` +
-          decision.reasoning[0],
-        payload: decision,
-      }),
-    );
+    push({
+      from: this.id,
+      fromName: this.name,
+      to: "user",
+      role: "user_agent",
+      kind: "decision",
+      content:
+        `最终决定:「${decision.planName}」,${decision.customized.durationMin} 分钟。` +
+        decision.reasoning[0],
+      payload: decision,
+    });
 
-    return { goalId, state, analysis, transcript, proposals, conflicts, decision, engine: llm.name };
+    const result: ConsultResult = {
+      goalId,
+      state,
+      analysis,
+      transcript,
+      proposals,
+      conflicts,
+      decision,
+      engine: llm.name,
+    };
+    emit({ type: "phase", phase: "done", label: "会诊完成" });
+    emit({ type: "result", result });
+    return result;
   }
 
-  /** 只在同一环节里、两位计划负责人推了不同目录模块时记分歧。 */
   private detectStageConflicts(picks: StagePick[]): AgentConflict[] {
     const conflicts: AgentConflict[] = [];
     const byStage = new Map<number, StagePick[]>();
@@ -279,10 +336,4 @@ export class UserAgent {
     }
     return conflicts;
   }
-}
-
-// 避免循环依赖:presets 里 PLANS 的 getter
-import { PLANS } from "./data/presets";
-function getAllPlans() {
-  return PLANS;
 }

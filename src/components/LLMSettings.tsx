@@ -2,36 +2,46 @@ import { useEffect, useState } from "react";
 import type { LLMConfig } from "@contracts/agents";
 
 /**
- * LLM 接入设置:用户自己填 API Key,试用脚手架的完整 LLM 通道。
- * 密钥只保存在浏览器 localStorage,随每次请求发给后端转发给模型服务,服务器不落盘。
+ * LLM 接入设置。
+ * 奇绩（qiji）为产品内置通道，开箱即用；Kimi / MiniMax / Qwen 需用户自备 Key。
+ * 用户自填密钥只保存在浏览器 localStorage，随请求转发，服务器不落盘。
  */
 
 const STORAGE_KEY = "nf-llm-config";
 const CHANGE_EVENT = "nf-llm-change";
 
-const DEFAULTS: Record<"kimi" | "qwen" | "minimax", { baseUrl: string; model: string; hint: string }> = {
+const DEFAULTS: Record<
+  "qiji" | "kimi" | "qwen" | "minimax",
+  { baseUrl: string; model: string; hint: string }
+> = {
+  qiji: {
+    baseUrl: "https://api.openai-next.com/v1",
+    model: "gpt-5.6-sol",
+    hint: "产品内置，可留空",
+  },
   kimi: {
     baseUrl: "https://api.moonshot.cn/v1",
     model: "kimi-k3",
-    hint: "留空使用系统内置 Key",
+    hint: "需自备 Moonshot Key",
   },
   minimax: {
     baseUrl: "https://api.minimaxi.com/v1",
     model: "MiniMax-M2",
-    hint: "留空使用系统内置 Key",
+    hint: "需自备 MiniMax Key",
   },
   qwen: {
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     model: "qwen-plus",
-    hint: "阿里云百炼平台申请",
+    hint: "需自备阿里云百炼 Key",
   },
 };
 
 /** 系统内置了 Key 的 provider:选中即可用,不用填 */
-const BUILTIN_PROVIDERS = ["kimi", "minimax"] as const;
+const BUILTIN_PROVIDERS = ["qiji"] as const;
 
 const PROVIDER_LABEL: Record<string, string> = {
   rule: "规则引擎",
+  qiji: "奇绩",
   kimi: "Kimi",
   minimax: "MiniMax",
   qwen: "Qwen",
@@ -44,13 +54,17 @@ function load(): LLMConfig {
   } catch {
     /* ignore */
   }
-  // 从未做过任何选择时:默认使用系统内置的 MiniMax(开箱即用)
-  return { provider: "minimax" };
+  // 从未做过任何选择时:默认使用产品内置奇绩
+  return {
+    provider: "qiji",
+    baseUrl: DEFAULTS.qiji.baseUrl,
+    model: DEFAULTS.qiji.model,
+  };
 }
 
 /** 读取当前生效的 LLM 配置(供请求携带);rule 或无 key 时返回 undefined */
 export function useLLMConfig(): LLMConfig | undefined {
-  const [cfg, setCfg] = useState<LLMConfig>({ provider: "minimax" });
+  const [cfg, setCfg] = useState<LLMConfig>({ provider: "qiji" });
   useEffect(() => {
     const sync = () => setCfg(load());
     sync();
@@ -79,7 +93,7 @@ export default function LLMSettings({
   /** 设置整页：默认展开表单，不再套一层折叠 */
   forceOpen?: boolean;
 }) {
-  const [cfg, setCfg] = useState<LLMConfig>({ provider: "minimax" });
+  const [cfg, setCfg] = useState<LLMConfig>({ provider: "qiji" });
   const [open, setOpen] = useState(defaultOpen || forceOpen);
 
   useEffect(() => {
@@ -98,15 +112,16 @@ export default function LLMSettings({
     cfg.provider === "rule"
       ? "规则引擎"
       : active
-        ? `${PROVIDER_LABEL[cfg.provider]} ${cfg.apiKey ? "已启用" : "(内置 Key)"}`
+        ? `${PROVIDER_LABEL[cfg.provider]} ${cfg.apiKey ? "已启用" : "(内置)"}`
         : `${PROVIDER_LABEL[cfg.provider]} 待填 Key`;
 
   const form = (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
         {(
           [
             ["rule", "规则引擎"],
+            ["qiji", "奇绩"],
             ["kimi", "Kimi"],
             ["minimax", "MiniMax"],
             ["qwen", "Qwen"],
@@ -163,9 +178,9 @@ export default function LLMSettings({
         {active
           ? "意图识别、回复生成、专家提案与仲裁理由将改由 LLM 完成;失败时自动降级回规则引擎,并在思考链路中如实标注。"
           : cfg.provider === "rule"
-            ? "内置关键词 + 模板引擎,离线可用。选择 Kimi / MiniMax 即切换到 LLM 通道;不做任何选择时系统默认使用 MiniMax(内置 Key)。"
+            ? "内置关键词 + 模板引擎,离线可用。默认推荐「奇绩」(产品内置 Key)。其它厂商需自行填 Key。"
             : builtin
-              ? "该服务商已内置系统 Key,直接可用;填入自己的 Key 可覆盖(只存在你的浏览器里,随请求转发,服务器不保存)。"
+              ? "奇绩通道已内置系统 Key,直接可用;填入自己的 Key 可覆盖(只存在你的浏览器里)。"
               : "填入 API Key 后生效。密钥只存在你的浏览器里,随请求转发,服务器不保存。"}
       </p>
     </div>

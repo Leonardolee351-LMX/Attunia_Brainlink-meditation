@@ -1,8 +1,8 @@
 /**
  * LLM Provider 抽象层 —— 本脚手架最关键的扩展点。
  *
- * 密钥与端点写在 config/llm-apis.md（格式）和 config/llm-apis.local.md（本机密钥，不进 git）。
- * 环境变量可覆盖。所有 Agent 只依赖 LLMProvider 接口。
+ * 密钥与端点写在 config/llm-apis.md（可提交；奇绩为产品内置通道）
+ * 与 config/llm-apis.local.md（本机覆盖，不进 git）。环境变量可再覆盖。
  */
 import type {
   ChatTurn,
@@ -13,6 +13,8 @@ import type {
   LLMConfig,
   UserState,
   GoalId,
+  SessionDebriefStats,
+  SessionInsight,
 } from "@contracts/agents";
 import { llmEndpoint, loadLlmApiRegistry } from "../../lib/llm-apis";
 import { orderedGoalIds } from "../consult-stages";
@@ -101,6 +103,13 @@ export interface ComposeReplyInput {
   stateNeed?: string;
 }
 
+export interface DebriefComposeResult {
+  summary: string;
+  discovery?: string;
+  insights?: SessionInsight[];
+  nextReason?: string;
+}
+
 export interface LLMProvider {
   readonly name: string;
   /** 从用户对话中抽取意图(目标/时长/状态线索) */
@@ -113,6 +122,8 @@ export interface LLMProvider {
   propose(input: ProposeInput): Promise<ExpertProposal | null>;
   /** 用户 Agent 仲裁冲突(LLM 模式);rule 模式下返回 null,走加权规则 */
   arbitrate(input: ArbitrateInput): Promise<Pick<FinalDecision, "reasoning"> | null>;
+  /** 赛后复盘个人化解读；rule 返回 null，走模板 */
+  composeSessionDebrief?(stats: SessionDebriefStats): Promise<DebriefComposeResult | null>;
 }
 
 // ───────────────────────────── 规则实现(默认,离线可跑) ─────────────────────────────
@@ -184,6 +195,10 @@ export class RuleBasedProvider implements LLMProvider {
 
   async arbitrate(): Promise<null> {
     return null; // rule 模式下用户 Agent 用加权规则仲裁,见 user-agent.ts
+  }
+
+  async composeSessionDebrief(): Promise<null> {
+    return null;
   }
 }
 
@@ -321,6 +336,28 @@ export class OpenAICompatibleProvider implements LLMProvider {
       console.warn(`[llm] ${this.name} call failed:`, e instanceof Error ? e.message : e);
       this.lastFallback = "composeReply";
       return this.fallback.composeReply(input);
+    }
+  }
+
+  async composeSessionDebrief(stats: SessionDebriefStats): Promise<DebriefComposeResult | null> {
+    try {
+      const raw = await this.chat(
+        `你是 Tuno。用 INFP 气质写赛后复盘：柔软、看见、一点可爱，不评判、不打分、不医疗。` +
+          `你拿到的是训练过程统计特征（不是原始脑电）。请真正结合这些起伏，挖出用户可能没注意到的一点。` +
+          `summary ≤70字，像朋友轻声说话；discovery ≤50字，点出「未被发现」的小洞见；` +
+          `insights 2~3条，title≤12字，detail≤60字；tone 仅 good|nudge；` +
+          `nextReason ≤40字。可用「轻轻」「呀」「欸」等软语气，禁止感叹号堆叠与教练口吻。` +
+          `数字只可偶尔点一下变化幅度，不要列指标表。` +
+          `只输出 JSON:{"summary":"...","discovery":"...","insights":[{"icon":"🌿","title":"...","detail":"...","tone":"good"}],"nextReason":"..."}`,
+        JSON.stringify(stats),
+      );
+      const p = this.parseJson<DebriefComposeResult>(raw);
+      if (!p.summary?.trim()) throw new Error("bad debrief shape");
+      return p;
+    } catch (e) {
+      console.warn(`[llm] ${this.name} debrief failed:`, e instanceof Error ? e.message : e);
+      this.lastFallback = "composeSessionDebrief";
+      return null;
     }
   }
 
@@ -511,13 +548,17 @@ export class OpenAICompatibleProvider implements LLMProvider {
 // ───────────────────────────── 工厂 ─────────────────────────────
 
 /** 各 provider 的默认接入点(用户只填 key 即可,其余自动补全) */
-export const PROVIDER_DEFAULTS: Record<"kimi" | "qwen" | "minimax", { baseUrl: string; model: string; temperature?: number }> = {
+export const PROVIDER_DEFAULTS: Record<
+  "qiji" | "kimi" | "qwen" | "minimax",
+  { baseUrl: string; model: string; temperature?: number }
+> = {
+  qiji: { baseUrl: "https://api.openai-next.com/v1", model: "gpt-5.6-sol", temperature: 0.3 },
   kimi: { baseUrl: "https://api.moonshot.cn/v1", model: "kimi-k3", temperature: 1 },
   qwen: { baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1", model: "qwen-plus" },
   minimax: { baseUrl: "https://api.minimaxi.com/v1", model: "MiniMax-M2" },
 };
 
-function registryDefaults(id: "kimi" | "qwen" | "minimax") {
+function registryDefaults(id: "qiji" | "kimi" | "qwen" | "minimax") {
   const ep = llmEndpoint(id);
   return {
     baseUrl: ep?.baseUrl || PROVIDER_DEFAULTS[id].baseUrl,
@@ -566,7 +607,7 @@ let cached: LLMProvider | null = null;
 export function getLLMProvider(override?: LLMConfig): LLMProvider {
   if (override && override.provider === "rule") return new RuleBasedProvider();
   if (override) {
-    const defaults = registryDefaults(override.provider as "kimi" | "qwen" | "minimax");
+    const defaults = registryDefaults(override.provider as "qiji" | "kimi" | "qwen" | "minimax");
     const apiKey = override.apiKey || defaults.apiKey;
     if (apiKey) {
       return new OpenAICompatibleProvider({
@@ -580,7 +621,12 @@ export function getLLMProvider(override?: LLMConfig): LLMProvider {
   }
   if (cached) return cached;
   const registry = loadLlmApiRegistry();
-  const kind = (process.env.LLM_PROVIDER || registry.defaultProvider) as "kimi" | "qwen" | "minimax" | "rule";
+  const kind = (process.env.LLM_PROVIDER || registry.defaultProvider) as
+    | "qiji"
+    | "kimi"
+    | "qwen"
+    | "minimax"
+    | "rule";
   if (kind === "rule") {
     cached = new RuleBasedProvider();
     return cached;

@@ -10,6 +10,16 @@ const PLAN_TO_SCENE: Record<string, WorkSceneId> = {
   "ritual-offwork": "clock-out",
 };
 
+/** 有器乐床轨用 mp3；午憩与摸鱼暂留程序化 wav。清单：docs/agent-lab/mood/scene-bgm-manifest.json */
+const SCENE_BGM_SRC: Record<WorkSceneId, string> = {
+  "clock-in": "/audio/scenes/clock-in.mp3",
+  "post-meet": "/audio/scenes/post-meet.mp3",
+  "lunch-tide": "/audio/scenes/lunch-tide.wav",
+  overload: "/audio/scenes/overload.mp3",
+  "drift-back": "/audio/scenes/drift-back.wav",
+  "clock-out": "/audio/scenes/clock-out.mp3",
+};
+
 export function sceneIdForSession(
   planId: string | undefined,
   explicit?: string | null,
@@ -28,5 +38,5 @@ export function sceneIdForSession(
 }
 
 export function sceneBgmSrc(sceneId: WorkSceneId): string {
-  return `/audio/scenes/${sceneId}.wav`;
+  return SCENE_BGM_SRC[sceneId];
 }

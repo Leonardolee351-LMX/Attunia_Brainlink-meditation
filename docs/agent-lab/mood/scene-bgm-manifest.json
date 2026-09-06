@@ -1,0 +1,51 @@
+{
+  "updatedAt": "2026-09-05",
+  "policy": "Real instrumental beds from music/; soft-light-fall maps to post-meet; lunch-tide & drift-back keep procedural wav until supplied",
+  "active": [
+    {
+      "sceneId": "clock-in",
+      "source": "上班准备 (2).mp3",
+      "dest": "public/audio/scenes/clock-in.mp3",
+      "bytes": 5714084
+    },
+    {
+      "sceneId": "clock-out",
+      "source": "下班切换.mp3",
+      "dest": "public/audio/scenes/clock-out.mp3",
+      "bytes": 10886193
+    },
+    {
+      "sceneId": "overload",
+      "source": "overdrive smoothen (2).mp3",
+      "dest": "public/audio/scenes/overload.mp3",
+      "bytes": 6653170
+    },
+    {
+      "sceneId": "post-meet",
+      "source": "软光回落.mp3",
+      "dest": "public/audio/scenes/post-meet.mp3",
+      "bytes": 5817601
+    }
+  ],
+  "alternatesInMusicFolder": {
+    "clock-in": [
+      "上班准备 (1).mp3",
+      "上班准备 (2).mp3"
+    ],
+    "clock-out": [
+      "下班切换 (1).mp3",
+      "下班切换.mp3"
+    ],
+    "overload": [
+      "overdrive smoothen (1).mp3",
+      "overdrive smoothen (2).mp3"
+    ],
+    "post-meet": [
+      "软光回落.mp3"
+    ]
+  },
+  "unmappedScenes": [
+    "lunch-tide",
+    "drift-back"
+  ]
+}

@@ -1,37 +1,20 @@
-# 六景冥想训练 BGM（重写）
+# 六景冥想训练 BGM
 
-作者：训练咨询。给 F-14 / 程序化生成用。  
-边界：这是**声疗床轨**（可循环、低于人声），不是会诊现作曲；不调 MiniMax Music。  
-真相源：`docs/agent-lab/mood/music-prompts.json` → `generate_scene_audio.py` → `public/audio/scenes/{id}.wav`
+作者：训练咨询 + 用户曲库入库。  
+边界：离线入库循环播放；**不是**会诊现作曲。
 
-## 设计原则
+| 文件 | 用途 |
+|------|------|
+| [`../mood/SCENE-BGM-INGEST.md`](../mood/SCENE-BGM-INGEST.md) | **现行入库映射**（上班/下班/超载 mp3；软光回落→会后） |
+| [`../mood/scene-bgm-manifest.json`](../mood/scene-bgm-manifest.json) | 机器清单 |
+| [`../mood/MUSIC-PROMPTS.md`](../mood/MUSIC-PROMPTS.md) | 仍缺曲场景的提示词（午憩 / 摸鱼） |
+| `generate_scene_audio.py` | 仅未供曲场景的程序化备用 |
 
-1. **六条必须一耳朵能分开**——不能六景都是「布料 + 木面 ASMR」。
-2. **永远让路给引导词**：床轨比人声低一截；无歌词、无人声、无副歌。
-3. **协议钟归画面与口播**——BGM 不抢呼吸拍；最多给极轻的「身体感」起伏。
-4. **状态迁移对齐场景**：升专注 ≠ 做成舞曲；降唤醒 ≠ 做成恐怖低音或助眠专辑。
+## 现行听感来源
 
-| sceneId | 一句话声场 | 主纹理（要听得出） | 刻意不要 |
-|---------|------------|-------------------|----------|
-| clock-in | 黄油晨光，把注意拢成一点 | 暖粉噪 HVAC + 极轻四方木触（约 4 拍一次）+ 远雀 | 闹钟、咖啡厅、lo-fi 鼓 |
-| post-meet | 走廊变空，呼气比吸气长 | 棕潮 ISO 变稀 + 鼠尾草垫 | 电梯叮、提示音、大提琴独奏 |
-| lunch-tide | 午后浅水漂着，还能回工位 | 暖沙低频潮 + 远叶 + 偶尔细碎亮点 | 摇篮曲、暴雨、颂钵连敲 |
-| overload | 标签一层层剥掉，落回房间 | 前 20s 略挤的中频 → 布料/桌面触感变清楚 | 白噪墙、警报、悬疑 |
-| drift-back | 水面允许漂，再软软回来 | 稀疏水滴 → 后半略规律 + 薄荷气 | 卡通泼水、trap、内疚钢琴 |
-| clock-out | 抽屉合上，室内灯暖起来 | **一次**木屉闷触 + 钨丝暖垫 + 窗外远风 | 悲伤钢琴、片尾曲、纯雨循环 |
+| sceneId | 来源 |
+|---------|------|
+| clock-in / post-meet / overload / clock-out | `music/` → `public/audio/scenes/*.mp3` |
+| lunch-tide / drift-back | 程序化 `*.wav`（待补曲） |
 
-## 与训练的关系
-
-- 场景 BGM 挂在 `sceneId`，该景下所有子模块默认继承。
-- 模块以后若有 `bgm.ref`，可覆盖；本期不做。
-- 超载主练 5-4-3-2-1：床轨要「越来越空、越来越近」，配合楼梯减标签。
-- 开工箱式：木触可以暗示「边」，但绝不能做成军鼓或节拍器抢口播。
-
-## 生成
-
-```bash
-cd docs/agent-lab/mood
-python generate_scene_audio.py
-```
-
-输出到 `docs/agent-lab/mood/audio/` 与 `public/audio/scenes/`。
+`post-meet` 暂用 **软光回落**。

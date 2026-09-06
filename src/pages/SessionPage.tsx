@@ -5,8 +5,10 @@ import PlayerAura from "@/components/PlayerAura";
 import OverloadVisual from "@/components/training-visuals/OverloadVisual";
 import { overloadVisualKind } from "@/lib/training-visual-registry";
 import DebriefPanel from "@/components/DebriefPanel";
+import AgentThinkingRail from "@/components/AgentThinkingRail";
 import { ComplianceDisclosure } from "@/components/ComplianceNote";
 import { trpc } from "@/providers/trpc";
+import { useLLMConfig } from "@/components/LLMSettings";
 import type { BioSample, FinalDecision, GoalId, InventedPractice, TrainingPlan } from "@contracts/agents";
 import { recordSession } from "@/lib/memory";
 import { speakGuidance, stopGuidance } from "@/lib/tts";
@@ -127,6 +129,9 @@ export default function SessionPage() {
   const navigate = useNavigate();
   const presets = trpc.agent.presets.useQuery();
   const debriefMut = trpc.agent.debrief.useMutation();
+  const llmConfig = useLLMConfig();
+  const llmConfigRef = useRef(llmConfig);
+  llmConfigRef.current = llmConfig;
 
   const handoff = (location.state ?? {}) as {
     customized?: FinalDecision["customized"];
@@ -374,6 +379,7 @@ export default function SessionPage() {
               planId: plan.id,
               goalId: sessionGoal,
               samples: samplesRef.current,
+              llm: llmConfigRef.current,
             });
           }
           return 0;
@@ -704,8 +710,8 @@ export default function SessionPage() {
       {!running && finished && (
         <div className="nf-scroll-hide relative z-10 flex flex-1 flex-col overflow-y-auto px-5 pb-8">
           <div className="text-center">
-            <div className="font-display text-3xl">练习完成</div>
-            <p className="mt-2 text-sm text-white/50">Tuno 正在解读你刚才的状态曲线…</p>
+            <div className="font-display text-3xl">练完啦</div>
+            <p className="mt-2 text-sm text-white/50">Tuno 正在把刚才的起伏读成一句说给你听的话…</p>
           </div>
           {plan.id === "invented" && (
             <div className="mt-6 rounded-[28px] bg-cream p-6 text-center text-ink">
@@ -723,14 +729,38 @@ export default function SessionPage() {
           {plan.id !== "invented" && (
             <div className="mt-6 rounded-[28px] bg-cream p-1 text-ink">
               {debriefMut.isPending && (
-                <div className="flex items-center justify-center gap-2 p-8 text-sm text-ink/45">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
-                  Tuno 正在解读 {samplesRef.current.length} 个采样点…
+                <div className="p-4">
+                  <AgentThinkingRail
+                    title="Tuno 在读你的曲线"
+                    steps={["采集数据ing", "理解用户状态ing", "思考对策ing", "写给你ing"]}
+                  />
+                  <p className="mt-3 text-center text-[11px] text-ink/35">
+                    {samplesRef.current.length} 个采样点 · 正在结合起伏写报告
+                  </p>
                 </div>
               )}
               {debriefMut.data && (
                 <div className="p-3">
                   <DebriefPanel debrief={debriefMut.data} samples={samplesRef.current} onRestart={start} />
+                </div>
+              )}
+              {debriefMut.isError && (
+                <div className="p-6 text-center text-[13px] text-clay">
+                  解读这一下没接上：{debriefMut.error.message}
+                  <button
+                    type="button"
+                    className="mt-3 block w-full text-ink/50 underline"
+                    onClick={() =>
+                      debriefMut.mutate({
+                        planId: plan.id,
+                        goalId: sessionGoal,
+                        samples: samplesRef.current,
+                        llm: llmConfigRef.current,
+                      })
+                    }
+                  >
+                    再试一次
+                  </button>
                 </div>
               )}
             </div>

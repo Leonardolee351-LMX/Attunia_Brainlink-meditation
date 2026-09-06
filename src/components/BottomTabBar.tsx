@@ -1,29 +1,50 @@
 import { NavLink, useLocation } from "react-router";
+import FluidPillTrack from "@/components/FluidPillTrack";
 
 const TABS = [
-  { to: "/home", label: "Home", Icon: HomeIcon, match: (p: string) => p === "/home" || p.startsWith("/scene") },
-  { to: "/chat", label: "Conversation", Icon: ChatIcon, match: (p: string) => p.startsWith("/chat") },
+  {
+    to: "/home",
+    label: "Home",
+    Icon: HomeIcon,
+    match: (p: string) => p === "/home" || p.startsWith("/chat"),
+  },
+  {
+    to: "/explore",
+    label: "Explore",
+    Icon: ExploreIcon,
+    match: (p: string) => p === "/explore" || p.startsWith("/scene"),
+  },
   { to: "/consult", label: "Tuno", Icon: NovaIcon, match: (p: string) => p.startsWith("/consult") },
   { to: "/profile", label: "Profile", Icon: ProfileIcon, match: (p: string) => p.startsWith("/profile") },
 ] as const;
 
 export default function BottomTabBar() {
   const { pathname } = useLocation();
+  const activeIndex = Math.max(
+    0,
+    TABS.findIndex((tab) => tab.match(pathname)),
+  );
 
   return (
     <nav
       className="border-t border-ink/[0.06] bg-cream/92 px-2 pt-1.5 pb-[max(10px,env(safe-area-inset-bottom,0px))] backdrop-blur-xl sm:pb-[22px]"
       aria-label="主导航"
     >
-      <div className="grid grid-cols-4">
-        {TABS.map((tab) => {
+      <FluidPillTrack
+        activeIndex={activeIndex}
+        count={TABS.length}
+        className="grid grid-cols-4"
+        pillClassName="bg-ink/[0.07]"
+      >
+        {TABS.map((tab, i) => {
           const on = tab.match(pathname);
           return (
             <NavLink
               key={tab.to}
               to={tab.to}
+              data-fluid-i={i}
               aria-current={on ? "page" : undefined}
-              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
+              className={`relative z-[1] flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5 transition-colors duration-300 active:scale-[0.97] ${
                 on ? "text-ink" : "text-ink/35"
               }`}
             >
@@ -34,7 +55,7 @@ export default function BottomTabBar() {
             </NavLink>
           );
         })}
-      </div>
+      </FluidPillTrack>
     </nav>
   );
 }
@@ -53,15 +74,24 @@ function HomeIcon({ active }: { active: boolean }) {
   );
 }
 
-function ChatIcon({ active }: { active: boolean }) {
+/** Explore：探索训练计划 */
+function ExploreIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M5.5 6.5h9.2A3.3 3.3 0 0 1 18 9.8v4.2a3.3 3.3 0 0 1-3.3 3.3h-3.4L7.2 21v-3.7H5.5A3.3 3.3 0 0 1 2.2 14V9.8A3.3 3.3 0 0 1 5.5 6.5Z"
+      <circle
+        cx="12"
+        cy="12"
+        r="8.2"
         stroke="currentColor"
         strokeWidth={active ? 1.8 : 1.5}
-        strokeLinejoin="round"
         fill={active ? "currentColor" : "none"}
+      />
+      <path
+        d="M10.2 10.2 14.8 9.1 13.7 13.7 9.1 14.8 10.2 10.2Z"
+        stroke={active ? "#F6F7F9" : "currentColor"}
+        strokeWidth={active ? 1.6 : 1.4}
+        strokeLinejoin="round"
+        fill={active ? "#F6F7F9" : "none"}
       />
     </svg>
   );
@@ -102,6 +132,7 @@ function ProfileIcon({ active }: { active: boolean }) {
         stroke="currentColor"
         strokeWidth={active ? 1.8 : 1.5}
         strokeLinecap="round"
+        fill="none"
       />
     </svg>
   );

@@ -3,7 +3,7 @@ import { CATEGORY_LABEL, planCoverSrc, planCrop } from "@/lib/plan-covers";
 import { usePlanPreview } from "@/providers/plan-preview";
 
 /**
- * 探索训练卡：封面只露出局部。点击后同一张图 flip 展开。
+ * 快速训练卡：封面只露出局部。点击后同一张图 flip 展开，再选时长进训。
  * strip 用在对话建议里，避免海报卡再套进白盒。
  */
 export default function PlanMiniCard({
