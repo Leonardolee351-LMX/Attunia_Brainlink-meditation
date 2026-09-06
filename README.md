@@ -1,3 +1,5 @@
+# Note：请务必下载到本地后再进行原型体验。线上无法进行完整原型体验（因为有Agent）
+
 # Attunia（Brainlink Meditation）
 
 Attunia 是面向 **Work–Life Balance** 的 Soft Healthcare 产品原型：用脑电感知工作/休息切换中的状态落差，提供短时调适练习，并由 Agent **Tuno** 陪伴对话（必要时 Multi-Agent 会诊，只拼已有疗法目录）。
