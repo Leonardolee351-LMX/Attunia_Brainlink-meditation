@@ -63,19 +63,28 @@ export default function CoverPage() {
           </button>
 
           <details className="group relative text-center">
-            <summary className="cursor-pointer list-none text-[11px] text-white/40 transition hover:text-white/70">
+            <summary className="cursor-pointer list-none text-[12px] tracking-wide text-[#E8C98A]/85 transition hover:text-[#E8C98A]">
               身心放松练习 · 非医疗用途
-              <span className="ml-1.5 inline-flex align-middle text-white/40 transition group-open:rotate-90">
+              <span className="ml-1.5 inline-flex align-middle opacity-70 transition group-open:rotate-90">
                 <IconArrow direction="right" className="h-3 w-3" />
               </span>
             </summary>
-            <div className="absolute inset-x-0 bottom-full z-20 mb-2 max-h-[38vh] overflow-y-auto rounded-[22px] bg-[#141416]/96 px-4 py-3 text-left text-[10px] leading-relaxed text-white/50 ring-1 ring-white/10 backdrop-blur-md">
-              <p>
-                Attunia 提供的是冥想与身心状态调节练习，不构成医疗诊断、治疗或处方建议，
-                不能替代医生或心理咨询师的专业帮助。如你正经历持续的情绪困扰，请寻求专业机构支持；
-                情况紧急时请拨打全国 24 小时心理援助热线 400-161-9995，或直接拨打 120。
+            <div className="absolute inset-x-0 bottom-full z-20 mb-2 max-h-[42vh] overflow-y-auto rounded-[24px] bg-[#141416]/97 px-4 py-4 text-left shadow-[0_20px_48px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/12 backdrop-blur-md">
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-[#E8C98A]/75 uppercase">
+                Soft Healthcare · 合规说明
               </p>
-              <p className="mt-2">脑电数据仅在本机处理，真机走本地串口桥，不会上传原始波形。</p>
+              <p className="mt-2.5 text-[13px] leading-[1.65] text-white/88">
+                Attunia 提供的是<strong className="font-semibold text-white">冥想与身心状态调节练习</strong>
+                ，不构成医疗诊断、治疗或处方建议，不能替代医生或心理咨询师的专业帮助。
+              </p>
+              <p className="mt-2.5 text-[13px] leading-[1.65] text-white/78">
+                如你正经历持续的情绪困扰，请寻求专业机构支持；情况紧急时请拨打全国 24 小时心理援助热线{" "}
+                <span className="font-semibold text-white">400-161-9995</span>
+                ，或直接拨打 <span className="font-semibold text-white">120</span>。
+              </p>
+              <p className="mt-2.5 border-t border-white/10 pt-2.5 text-[12px] leading-relaxed text-white/55">
+                脑电数据仅在本机处理，真机走本地串口桥，不会上传原始波形；原始脑电也不会送入外部 LLM。
+              </p>
             </div>
           </details>
         </div>

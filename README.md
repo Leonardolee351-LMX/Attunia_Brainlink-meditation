@@ -11,6 +11,71 @@ Attunia 是面向 **Work–Life Balance** 的 Soft Healthcare 产品原型：用
 
 - GitHub：https://github.com/Leonardolee351-LMX/Attunia_Brainlink-meditation
 
+### 界面速览
+
+| 开屏 · Attunia | 说明书 · 戴上→看见→练习 | 校准前 · 认识你 |
+|:---:|:---:|:---:|
+| <img src="docs/readme/screens/15-splash.jpg" width="240" alt="Attunia 开屏" /> | <img src="docs/readme/screens/03-manual.png" width="240" alt="产品说明书" /> | <img src="docs/readme/screens/02-know-you.png" width="240" alt="设备认识你" /> |
+
+| 首页对话入口 | 探索 · 六景与训练 | Session · 开工前奏 |
+|:---:|:---:|:---:|
+| <img src="docs/readme/screens/04-home-chat.png" width="240" alt="首页" /> | <img src="docs/readme/screens/05-explore.png" width="240" alt="探索页" /> | <img src="docs/readme/screens/06-session.png" width="240" alt="训练页" /> |
+
+<details>
+<summary><strong>更多截图（场景路径 · 对话 · 会诊 · 复盘 · 时长选择）</strong></summary>
+
+| 场景路径 | Tuno 对话 | Tuno & Friends |
+|:---:|:---:|:---:|
+| <img src="docs/readme/screens/11-scene-path.png" width="240" alt="场景路径" /> | <img src="docs/readme/screens/13-chat-tuno.png" width="240" alt="Tuno 对话" /> | <img src="docs/readme/screens/14-consult.png" width="240" alt="会诊" /> |
+
+| 练完复盘 | 复盘加载 | 时长 Bottom Sheet |
+|:---:|:---:|:---:|
+| <img src="docs/readme/screens/08-debrief.png" width="240" alt="复盘" /> | <img src="docs/readme/screens/09-debrief-loading.png" width="240" alt="复盘加载" /> | <img src="docs/readme/screens/12-duration-sheet.png" width="240" alt="选择时长" /> |
+
+| 首页推荐卡 | 复盘行动区 |
+|:---:|:---:|
+| <img src="docs/readme/screens/07-home-rec.png" width="240" alt="首页推荐" /> | <img src="docs/readme/screens/10-debrief-actions.png" width="240" alt="复盘行动" /> |
+
+</details>
+
+---
+
+## P3 合规声明（机内弹窗 · 请先读）
+
+产品内用**深色圆角卡片弹层**呈现合规说明（点「身心放松练习 · 非医疗用途」展开），避免把长文塞进页脚小字。README 里用同一套文案，分段便于阅读：
+
+<p align="center">
+  <img src="docs/readme/screens/01-compliance-popup.png" width="360" alt="Attunia 合规声明机内弹窗" />
+</p>
+
+<table>
+<tr><td>
+
+**这是什么**
+
+Attunia 提供的是**冥想与身心状态调节练习**。  
+**不构成**医疗诊断、治疗或处方建议，**不能替代**医生或心理咨询师的专业帮助。
+
+**何时求助**
+
+若你正经历持续的情绪困扰，请寻求专业机构支持。  
+情况紧急时请拨打全国 24 小时心理援助热线 **400-161-9995**，或直接拨打 **120**。
+
+**脑电与隐私**
+
+脑电数据仅在本机处理与展示；经本地连接做接口调用。  
+**不会上传原始波形**到外部服务，也**不会**把原始脑电送进外部 LLM。
+
+</td></tr>
+<tr><td align="center">
+
+`身心放松练习 · 非医疗用途`
+
+</td></tr>
+</table>
+
+> Soft Healthcare 边界：调节与陪伴可以，诊断与处方不行。训练页另有 ⓘ 渐进披露的练习注意事项。
+
 ---
 
 ## 使用教学指引（从下载到日常）
@@ -195,7 +260,7 @@ App 内若有 LLM 设置面板，也可切换引擎；本机 local 文件里的�
 | **评测** | `eval_No.1`（对话 / 状态 / 危机）与 `eval_No.2`（工作态 10 分钟窗）可跑；`detectWorkNeed` 判定逻辑可演示 |
 | **Agent 框架** | 单 Agent **Tuno** + Multi-Agent 会诊（按环节拼疗法目录，不即兴 / 不生图作曲）；任务板与多角色分工协议 |
 | **用户体验** | Work–Life 介入场景（开工 / 会后 / 超载 / 摸鱼回笼 / 下工等）；日常短训与 Profile 记忆；对话与会诊的陪伴式流程 |
-| **合规说明** | Soft Healthcare 免责（ⓘ 渐进披露）、危机词识别与转介；原始脑电不进外部 LLM |
+| **合规说明** | Soft Healthcare 免责以**机内深色弹层**呈现（见上方 P3）；训练页 ⓘ 渐进披露；危机转介；原始脑电不进外部 LLM |
 
 > 叙事背景与成功指标草案见 [`docs/agent-lab/PROGRESS-BRIEF.md`](docs/agent-lab/PROGRESS-BRIEF.md)。任务事实来源：[`docs/agent-lab/board.json`](docs/agent-lab/board.json)。
 
@@ -280,6 +345,7 @@ App 内若有 LLM 设置面板，也可切换引擎；本机 local 文件里的�
 <summary><strong>合规 · Done</strong></summary>
 
 - Soft Healthcare 定位：调节练习，**非医疗诊断 / 治疗 / 处方**  
+- **P3 合规声明**：开屏/校准前页以深色圆角弹层展开「身心放松练习 · 非医疗用途」（分段可读，热线加粗）  
 - 训练页免责 ⓘ 渐进披露；危机识别与安全转介话术  
 - 原始脑电与可识别健康数据**不**送外部 LLM  
 - API Key 分发边界：产品内置奇绩通道已授权；其它厂商需用户自备；勿写入 Cursor 全局 Settings  
@@ -301,7 +367,6 @@ App 内若有 LLM 设置面板，也可切换引擎；本机 local 文件里的�
 
 欢迎试用、提 Bug、聊合作或 Soft Healthcare / WLB 场景反馈：
 
-- **GitHub Issues**（推荐）：[Attunia_Brainlink-meditation / Issues](https://github.com/Leonardolee351-LMX/Attunia_Brainlink-meditation/issues)  
-- **仓库 / 主页**：[@Leonardolee351-LMX](https://github.com/Leonardolee351-LMX)  
-
-若需邮件或其它联系方式，可在 Issue 里留言，我会补到本段。
+- **小红书**：Leonardo Li · 号 `310709340`  
+- **GitHub Issues**（推荐提 Bug）：[Attunia_Brainlink-meditation / Issues](https://github.com/Leonardolee351-LMX/Attunia_Brainlink-meditation/issues)  
+- **仓库 / 主页**：[@Leonardolee351-LMX](https://github.com/Leonardolee351-LMX)

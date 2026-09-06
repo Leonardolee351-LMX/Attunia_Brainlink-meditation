@@ -56,7 +56,6 @@ data/**
 
 
 # Local dumps / nested clone / EEG samples — never ship
-music/
 eval/user_data/
 Attunia_Brainlink-meditation/
 testingLab/
