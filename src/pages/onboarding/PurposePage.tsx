@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { IconArrow } from "@/components/icons/IconArrow";
 import FluidPillTrack from "@/components/FluidPillTrack";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
+import { assetUrl } from "@/lib/asset-url";
 
 type PageId = "what" | "why" | "day" | "edge";
 
@@ -67,7 +68,7 @@ export default function PurposePage() {
       {/* 上半：全幅图形 */}
       <div className="pointer-events-none absolute inset-0">
         <img
-          src="/brand/attunia-purpose.png"
+          src={assetUrl("/brand/attunia-purpose.png")}
           alt=""
           className="absolute inset-0 h-[58%] w-full object-cover object-[center_30%]"
         />
@@ -220,9 +221,9 @@ function PageArt({ id }: { id: PageId }) {
     return (
       <div className="flex -space-x-3 pb-2">
         {[
-          "/brand/friends/tuno.png",
-          "/brand/friends/mira.png",
-          "/brand/friends/kai.png",
+          assetUrl("/brand/friends/tuno.png"),
+          assetUrl("/brand/friends/mira.png"),
+          assetUrl("/brand/friends/kai.png"),
         ].map((src, i) => (
           <img
             key={src}
@@ -303,9 +304,9 @@ function PageDay() {
       <p className="mt-2 text-[14px] leading-relaxed text-ink/55">打开场景，跟着 Friends 做一小段。</p>
       <div className="mt-4 space-y-2">
         {[
-          { when: "开工", who: "Tuno", line: "热身注意力", img: "/brand/friends/tuno.png" },
-          { when: "专注", who: "Mira", line: "漂了再收回", img: "/brand/friends/mira.png" },
-          { when: "下班", who: "Kai", line: "工作留在工位", img: "/brand/friends/kai.png" },
+          { when: "开工", who: "Tuno", line: "热身注意力", img: assetUrl("/brand/friends/tuno.png") },
+          { when: "专注", who: "Mira", line: "漂了再收回", img: assetUrl("/brand/friends/mira.png") },
+          { when: "下班", who: "Kai", line: "工作留在工位", img: assetUrl("/brand/friends/kai.png") },
         ].map((row) => (
           <div
             key={row.when}

@@ -1,5 +1,6 @@
 import type { GoalId } from "@contracts/agents";
 import { WORK_SCENES, isWorkSceneId, type WorkSceneId } from "@/lib/scenes";
+import { assetUrl } from "@/lib/asset-url";
 
 const PLAN_TO_SCENE: Record<string, WorkSceneId> = {
   "breath-box": "clock-in",
@@ -12,12 +13,12 @@ const PLAN_TO_SCENE: Record<string, WorkSceneId> = {
 
 /** 有器乐床轨用 mp3；午憩与摸鱼暂留程序化 wav。清单：docs/agent-lab/mood/scene-bgm-manifest.json */
 const SCENE_BGM_SRC: Record<WorkSceneId, string> = {
-  "clock-in": "/audio/scenes/clock-in.mp3",
-  "post-meet": "/audio/scenes/post-meet.mp3",
-  "lunch-tide": "/audio/scenes/lunch-tide.wav",
-  overload: "/audio/scenes/overload.mp3",
-  "drift-back": "/audio/scenes/drift-back.wav",
-  "clock-out": "/audio/scenes/clock-out.mp3",
+  "clock-in": assetUrl("/audio/scenes/clock-in.mp3"),
+  "post-meet": assetUrl("/audio/scenes/post-meet.mp3"),
+  "lunch-tide": assetUrl("/audio/scenes/lunch-tide.wav"),
+  overload: assetUrl("/audio/scenes/overload.mp3"),
+  "drift-back": assetUrl("/audio/scenes/drift-back.wav"),
+  "clock-out": assetUrl("/audio/scenes/clock-out.mp3"),
 };
 
 export function sceneIdForSession(

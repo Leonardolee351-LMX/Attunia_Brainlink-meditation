@@ -1,4 +1,5 @@
 import type { GoalId } from "@contracts/agents";
+import { assetUrl } from "@/lib/asset-url";
 
 /** 上班族 work-life 六景。只做前端目录，底层训练仍走已有 planId。 */
 export type WorkSceneId =
@@ -43,7 +44,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["breath-box", "walk-mindful", "breath-bloom"],
     goalHint: "focus",
     desiredShift: { arousal: "keep", focus: "up", calm: "up" },
-    art: "/scenes/clock-in.png",
+    art: assetUrl("/scenes/clock-in.png"),
     accent: "#F5E56B",
     dark: false,
   },
@@ -57,7 +58,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["breath-478", "grounding-54321", "sound-downshift", "breath-bloom"],
     goalHint: "calm",
     desiredShift: { arousal: "down", focus: "keep", calm: "up" },
-    art: "/scenes/post-meet.png",
+    art: assetUrl("/scenes/post-meet.png"),
     accent: "#B8F2C9",
     dark: false,
   },
@@ -71,7 +72,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["coffee-nap", "nidra-restore", "scan-progressive", "sound-downshift"],
     goalHint: "focus",
     desiredShift: { arousal: "down", focus: "keep", calm: "up" },
-    art: "/scenes/lunch-tide.png",
+    art: assetUrl("/scenes/lunch-tide.png"),
     accent: "#F5E56B",
     dark: false,
   },
@@ -85,7 +86,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["grounding-54321", "pmr-release", "breath-478", "imagery-safeplace"],
     goalHint: "calm",
     desiredShift: { arousal: "down", focus: "keep", calm: "up" },
-    art: "/scenes/overload.png",
+    art: assetUrl("/scenes/overload.png"),
     accent: "#FF6B4A",
     dark: false,
   },
@@ -99,7 +100,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["ripple-tap", "breath-bloom", "walk-mindful", "breath-box"],
     goalHint: "focus",
     desiredShift: { arousal: "keep", focus: "up", calm: "up" },
-    art: "/scenes/drift-back.png",
+    art: assetUrl("/scenes/drift-back.png"),
     accent: "#B8F2C9",
     dark: false,
   },
@@ -113,7 +114,7 @@ export const WORK_SCENES: WorkScene[] = [
     relatedPlanIds: ["ritual-offwork", "sound-downshift", "pmr-release", "scan-progressive"],
     goalHint: "sleep",
     desiredShift: { arousal: "down", focus: "keep", calm: "up" },
-    art: "/scenes/clock-out.png",
+    art: assetUrl("/scenes/clock-out.png"),
     accent: "#111111",
     dark: true,
   },
@@ -204,9 +205,9 @@ export function recommendWorkScene(hour: number, bio?: BioHint | null): WorkScen
 
 /** @deprecated 旧三目标封面，仅给尚未改完的调用方。 */
 export const SCENE_VISUAL: Record<GoalId, { accent: string; dark: boolean; short: string; art: string }> = {
-  calm: { accent: "#FF6B4A", dark: false, short: "减负", art: "/scenes/overload.png" },
-  focus: { accent: "#F5E56B", dark: false, short: "开工", art: "/scenes/clock-in.png" },
-  sleep: { accent: "#111111", dark: true, short: "下工", art: "/scenes/clock-out.png" },
+  calm: { accent: "#FF6B4A", dark: false, short: "减负", art: assetUrl("/scenes/overload.png") },
+  focus: { accent: "#F5E56B", dark: false, short: "开工", art: assetUrl("/scenes/clock-in.png") },
+  sleep: { accent: "#111111", dark: true, short: "下工", art: assetUrl("/scenes/clock-out.png") },
 };
 
 export const SCENE_PLAN: Record<GoalId, string> = {

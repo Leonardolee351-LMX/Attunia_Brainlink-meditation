@@ -1,4 +1,5 @@
 import type { TrainingPlan } from "@contracts/agents";
+import { assetUrl } from "@/lib/asset-url";
 
 export const CATEGORY_LABEL: Record<string, string> = {
   breathwork: "呼吸调节",
@@ -30,7 +31,7 @@ export const PLAN_COVER: Record<string, { crop: string }> = {
 };
 
 export function planCoverSrc(planId: string) {
-  return `/plans/${planId}.jpg`;
+  return assetUrl(`/plans/${planId}.jpg`);
 }
 
 export function planCrop(planId: string) {

@@ -23,6 +23,7 @@ import {
 } from "@/lib/live-device";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
+import { assetUrl } from "@/lib/asset-url";
 
 type Stage =
   | { kind: "scanning" }
@@ -161,7 +162,7 @@ export default function DevicePage() {
   return (
     <div className={`${ONBOARD_BLEED} bg-[#0c0c0e]`}>
       <img
-        src="/brand/attunia-device-soft.png"
+        src={assetUrl("/brand/attunia-device-soft.png")}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-90"
       />

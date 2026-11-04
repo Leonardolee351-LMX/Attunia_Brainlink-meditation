@@ -1,4 +1,5 @@
 import type { WorkSceneId } from "@/lib/scenes";
+import { assetUrl } from "@/lib/asset-url";
 
 const FIELD: Record<
   WorkSceneId,
@@ -13,12 +14,12 @@ const FIELD: Record<
 };
 
 const RASTER: Record<WorkSceneId, string> = {
-  "clock-in": "/scenes/clock-in.jpg",
-  "post-meet": "/scenes/post-meet.jpg",
-  "lunch-tide": "/scenes/lunch-tide.jpg",
-  overload: "/scenes/overload.jpg",
-  "drift-back": "/scenes/drift-back.jpg",
-  "clock-out": "/scenes/clock-out.jpg",
+  "clock-in": assetUrl("/scenes/clock-in.jpg"),
+  "post-meet": assetUrl("/scenes/post-meet.jpg"),
+  "lunch-tide": assetUrl("/scenes/lunch-tide.jpg"),
+  overload: assetUrl("/scenes/overload.jpg"),
+  "drift-back": assetUrl("/scenes/drift-back.jpg"),
+  "clock-out": assetUrl("/scenes/clock-out.jpg"),
 };
 
 /** 把六景抽象成几何光斑：不是实景照片。 */

@@ -1,4 +1,5 @@
 import { EXPERT_ICON } from "@/lib/expert-icons";
+import { assetUrl } from "@/lib/asset-url";
 
 /** 会诊页展示用 Friends 名册（与后端专家目录对齐，前端只渲染、不改派工语义） */
 export type TunoFriend = {
@@ -21,7 +22,7 @@ export const TUNO_HOST: TunoFriend = {
   role: "编排中枢",
   blurb: "听你怎么说，再决定顺序与谁上场",
   icon: "✦",
-  avatar: "/brand/friends/tuno.png?v=flat",
+  avatar: assetUrl("/brand/friends/tuno.png?v=flat"),
   bg: "#E8ECEF",
   accent: "#111111",
   host: true,
@@ -34,7 +35,7 @@ export const TUNO_FRIENDS: TunoFriend[] = [
     role: "心理咨询",
     blurb: "减压、允许停下、先被接住",
     icon: EXPERT_ICON.expert_counsel,
-    avatar: "/brand/friends/mira.png?v=flat",
+    avatar: assetUrl("/brand/friends/mira.png?v=flat"),
     bg: "#D8EFE3",
     accent: "#2F6B52",
   },
@@ -44,7 +45,7 @@ export const TUNO_FRIENDS: TunoFriend[] = [
     role: "认知科学",
     blurb: "专注与认知卸负荷",
     icon: EXPERT_ICON.expert_cogsci,
-    avatar: "/brand/friends/chen.png?v=flat",
+    avatar: assetUrl("/brand/friends/chen.png?v=flat"),
     bg: "#F3E7C4",
     accent: "#8A6A1E",
   },
@@ -54,7 +55,7 @@ export const TUNO_FRIENDS: TunoFriend[] = [
     role: "心流体验",
     blurb: "沉浸入口与完成感",
     icon: EXPERT_ICON.expert_flow,
-    avatar: "/brand/friends/kai.png?v=flat",
+    avatar: assetUrl("/brand/friends/kai.png?v=flat"),
     bg: "#F6D9CE",
     accent: "#A14B32",
   },
@@ -64,7 +65,7 @@ export const TUNO_FRIENDS: TunoFriend[] = [
     role: "脑科学",
     blurb: "生理下行与睡前节奏",
     icon: EXPERT_ICON.expert_neuro,
-    avatar: "/brand/friends/vega.png?v=flat",
+    avatar: assetUrl("/brand/friends/vega.png?v=flat"),
     bg: "#D5DCF5",
     accent: "#3D4F8F",
   },
@@ -74,7 +75,7 @@ export const TUNO_FRIENDS: TunoFriend[] = [
     role: "艺术与创作",
     blurb: "点选目录里的声音与意象",
     icon: EXPERT_ICON.expert_art,
-    avatar: "/brand/friends/sona.png?v=flat",
+    avatar: assetUrl("/brand/friends/sona.png?v=flat"),
     bg: "#E8DCF2",
     accent: "#6B4A86",
   },

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { ONBOARD_BLEED } from "@/lib/onboarding-layout";
+import { assetUrl } from "@/lib/asset-url";
 
 const HOLD_MS = 3200;
 
@@ -27,8 +28,8 @@ export default function SplashPage() {
     <div className={`${ONBOARD_BLEED} bg-[#0c0c0e]`}>
       <video
         className="nf-splash-kenburns pointer-events-none absolute inset-0 h-full w-full origin-center object-cover will-change-transform"
-        src="/brand/attunia-splash.mp4"
-        poster="/brand/attunia-splash.png"
+        src={assetUrl("/brand/attunia-splash.mp4")}
+        poster={assetUrl("/brand/attunia-splash.png")}
         autoPlay
         muted
         playsInline

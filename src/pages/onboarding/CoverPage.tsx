@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { IconArrow } from "@/components/icons/IconArrow";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
+import { assetUrl } from "@/lib/asset-url";
 
 /**
  * 产品说明书之后：进入正式界面前，先让设备认识你（校准入口）。
@@ -10,7 +11,7 @@ export default function CoverPage() {
   return (
     <div className={`${ONBOARD_BLEED} bg-[#0c0c0e]`}>
       <img
-        src="/brand/attunia-cover.png"
+        src={assetUrl("/brand/attunia-cover.png")}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
