@@ -31,6 +31,7 @@ import {
   subscribeLive,
 } from "@/lib/live-device";
 import { PHONE_BLEED, PHONE_SAFE_TOP } from "@/lib/onboarding-layout";
+import { PLANS as LOCAL_PLANS } from "../../api/agents/data/presets";
 
 const PREF_CAPTIONS = "nf2-session-show-captions";
 const PREF_LIVE_BIO = "nf2-session-show-live-bio";
@@ -166,7 +167,10 @@ export default function SessionPage() {
     };
   }, [planId, handoff.invented]);
 
-  const plan = presets.data?.plans.find((p) => p.id === planId) ?? inventedPlan;
+  const plan =
+    presets.data?.plans.find((p) => p.id === planId) ??
+    LOCAL_PLANS.find((p) => p.id === planId) ??
+    inventedPlan;
 
   const [running, setRunning] = useState(false);
   const [phaseIdx, setPhaseIdx] = useState(0);

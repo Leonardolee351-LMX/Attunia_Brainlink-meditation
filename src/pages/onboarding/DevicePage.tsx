@@ -24,6 +24,7 @@ import {
 import { IconArrow } from "@/components/icons/IconArrow";
 import { ONBOARD_BLEED, ONBOARD_SAFE_TOP } from "@/lib/onboarding-layout";
 import { assetUrl } from "@/lib/asset-url";
+import { isStaticPagesHost } from "@/lib/static-host";
 
 type Stage =
   | { kind: "scanning" }
@@ -100,6 +101,13 @@ export default function DevicePage() {
   };
 
   useEffect(() => {
+    // GitHub Pages / 静态预览：无本机串口，默认演示信号，避免卡在「寻找头环」
+    if (isStaticPagesHost()) {
+      startDemoLive("演示信号");
+      setStage({ kind: "connected", deviceName: "演示信号", real: false });
+      setMoreOpen(true);
+      return;
+    }
     void connectSerial("COM23");
     void refreshScan();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -316,6 +324,10 @@ export default function DevicePage() {
           >
             {moreOpen ? "收起其他方式" : "其他连接方式"}
           </button>
+          <p className="px-1 text-center text-[11px] leading-relaxed text-white/45" data-tip="演示信号提示">
+            静态预览请点「其他连接方式」→「演示信号」。本页在 Pages 上已默认接入演示信号。
+          </p>
+
 
           {moreOpen && (
             <div className="absolute inset-x-0 bottom-[4.5rem] z-20 space-y-2 rounded-[22px] bg-[#141416]/96 p-3 ring-1 ring-white/10 backdrop-blur-md">

@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router";
 import StatePanel from "@/components/StatePanel";
 import PlanMiniCard from "@/components/PlanMiniCard";
 import LLMSettings, { useLLMConfig } from "@/components/LLMSettings";
+import { offlineRuleChat } from "@/lib/offline-rule-chat";
+import { isStaticPagesHost } from "@/lib/static-host";
 import NovaTrace from "@/components/NovaTrace";
 import { trpc } from "@/providers/trpc";
 import type { ChatAgentReply, ChatTurn, ComboRecommendation, UserState } from "@contracts/agents";
@@ -339,6 +341,19 @@ export default function ChatPage() {
           scrollToLatestReply();
         },
         onError: (err) => {
+          // Pages / 无 API：离线规则引擎补全对话→推荐→进训练
+          const offline =
+            isStaticPagesHost() ||
+            /fetch|network|404|failed|trpc|load failed/i.test(String(err?.message ?? err));
+          if (offline) {
+            const reply = offlineRuleChat(msg, history, state);
+            setMessages((m) => [
+              ...m,
+              { role: "assistant", content: reply.reply, payload: reply, bio: bioSnap },
+            ]);
+            scrollToLatestReply();
+            return;
+          }
           setMessages((m) => [
             ...m,
             {

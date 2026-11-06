@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { LLMConfig } from "@contracts/agents";
+import { isStaticPagesHost } from "@/lib/static-host";
 
 /**
  * LLM 接入设置。
@@ -50,11 +51,22 @@ const PROVIDER_LABEL: Record<string, string> = {
 function load(): LLMConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as LLMConfig;
+    if (raw) {
+      const cfg = JSON.parse(raw) as LLMConfig;
+      // Pages 无后端：奇绩等 LLM 通道不可用，回落到规则引擎
+      if (isStaticPagesHost() && cfg.provider === "qiji") {
+        return { provider: "rule" };
+      }
+      return cfg;
+    }
   } catch {
     /* ignore */
   }
-  // 从未做过任何选择时:默认使用产品内置奇绩
+  // 静态 Pages：默认规则引擎（完整对话+进训练可离线）
+  if (isStaticPagesHost()) {
+    return { provider: "rule" };
+  }
+  // 全栈环境：默认产品内置奇绩
   return {
     provider: "qiji",
     baseUrl: DEFAULTS.qiji.baseUrl,
@@ -64,7 +76,7 @@ function load(): LLMConfig {
 
 /** 读取当前生效的 LLM 配置(供请求携带);rule 或无 key 时返回 undefined */
 export function useLLMConfig(): LLMConfig | undefined {
-  const [cfg, setCfg] = useState<LLMConfig>({ provider: "qiji" });
+  const [cfg, setCfg] = useState<LLMConfig>({ provider: isStaticPagesHost() ? "rule" : "qiji" });
   useEffect(() => {
     const sync = () => setCfg(load());
     sync();
@@ -93,7 +105,7 @@ export default function LLMSettings({
   /** 设置整页：默认展开表单，不再套一层折叠 */
   forceOpen?: boolean;
 }) {
-  const [cfg, setCfg] = useState<LLMConfig>({ provider: "qiji" });
+  const [cfg, setCfg] = useState<LLMConfig>({ provider: isStaticPagesHost() ? "rule" : "qiji" });
   const [open, setOpen] = useState(defaultOpen || forceOpen);
 
   useEffect(() => {
