@@ -329,6 +329,18 @@ export default function ChatPage() {
       return;
     }
     const history = messages.map(({ role, content }) => ({ role, content }));
+    // Pages 静态：直接规则引擎，避免 mutate 挂起导致无法点「进入训练」
+    if (isStaticPagesHost()) {
+      const reply = offlineRuleChat(msg, history, state);
+      window.setTimeout(() => {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: reply.reply, payload: reply, bio: bioSnap },
+        ]);
+        scrollToLatestReply();
+      }, 180);
+      return;
+    }
     chat.mutate(
       { message: msg, history, state, llm: llmConfig, memory: loadMemory() },
       {

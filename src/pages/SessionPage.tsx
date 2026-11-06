@@ -32,6 +32,7 @@ import {
 } from "@/lib/live-device";
 import { PHONE_BLEED, PHONE_SAFE_TOP } from "@/lib/onboarding-layout";
 import { PLANS as LOCAL_PLANS } from "../../api/agents/data/presets";
+import { isStaticPagesHost } from "@/lib/static-host";
 
 const PREF_CAPTIONS = "nf2-session-show-captions";
 const PREF_LIVE_BIO = "nf2-session-show-live-bio";
@@ -410,7 +411,8 @@ export default function SessionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoAuto, plan, activePhases]);
 
-  if (presets.isLoading) {
+  // Pages / 静态：presets API 永不返回，不能挡住进训练；本地 PLANS 已够用
+  if (presets.isLoading && !isStaticPagesHost() && !(presets.data?.plans?.length)) {
     return (
       <div className={`${PHONE_BLEED} items-center justify-center bg-[#0c0c0e] text-sm text-white/40`}>
         <span className={PHONE_SAFE_TOP}>准备声场…</span>
